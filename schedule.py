@@ -23,10 +23,10 @@ class Scheduler:
         self.Schedule = []
         self.Time_limit = Total_time
         # Task on machine _ time on task
-        self.Operating = [[-1, None] for _ in range(self.numberOfMachine)]
+        self.Operating = [[-1, 8] for _ in range(self.numberOfMachine)]
 
     # Use for assigning new task to a machine
-    def dispatcher(self, machine: MixingMachine, phase: int, rate_decision: int = 0):
+    def dispatcher(self, machine_id: int, phase: int, rate_decision: int = 0):
         task: list
         if phase == 0:
             task = self.Phase0
@@ -37,8 +37,8 @@ class Scheduler:
             task = self.Phase2
         rate = []
         for index in range(self.numberOfTask):
-            ref_value = task[index] / machine.capacity
-            if index != machine.type_config:
+            ref_value = task[index] / self.MList[machine_id].capacity
+            if index != self.MList[machine_id].type_config:
                 ref_value += 2
             rate.append(ref_value)
         rate = np.array(rate)
@@ -51,8 +51,8 @@ class Scheduler:
             rate = rate.sum() / rate
             prate = rate / rate.sum()
         choice = np.random.choice(range(self.numberOfTask), p=prate)
-        machine.assign(choice)
-        return choice
+        self.MList[machine_id].assign(choice)
+        self.Operating[machine_id] = [choice, 0]
 
     def arrange_phase_1(self, machine_id: int):
         current_task = self.MList[machine_id].type_config
@@ -61,12 +61,13 @@ class Scheduler:
         if self.Operating[machine_id][0] == -1 and sum(self.Phase0) == 0:
             pass
         if self.Operating[machine_id][1] == 8:
-            self.Operating[machine_id][0] = self.dispatcher(self.MList[machine_id], machine_id % 2)
+            self.dispatcher(machine_id, machine_id % 2)
         output = self.MList[machine_id].process()
+        self.Operating[machine_id][1] += 1
         self.Phase0[current_task] -= output
         if self.Phase0[current_task] <= 0:
             self.Phase0[current_task] = 0
-            self.Operating[machine_id][0] = self.dispatcher(self.MList[machine_id], machine_id % 2)
+            self.dispatcher(machine_id, machine_id % 2)
         self.Phase1[current_task] += output
 
     def arrange_phase_2(self, machine_id: int):
@@ -80,7 +81,7 @@ class Scheduler:
                 pass
                 # Else assign a new task for the machine
                 # else:
-                self.Operating[machine_id][0] = self.dispatcher(self.MList[machine_id], machine_id % 2)
+                self.dispatcher(machine_id, machine_id % 2)
         # Produce like normal
         else:
             output = self.MList[machine_id].process(self.Phase1[current_task])

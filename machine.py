@@ -43,12 +43,6 @@ class Machine:
     # Activity to be done in a quantum time
     # def process(self, quantity: int = 0)
 
-    def assign(self, _type: int):
-        if self.type_config != _type:
-            self.config_time = self.change_over[self.type_config][_type]
-            return 1
-        return 0
-
 
 class MixingMachine(Machine):
     def __init__(self, capacity: int, time: int):
@@ -78,7 +72,11 @@ class MixingMachine(Machine):
         return 0
 
     def assign(self, _type: int):
-        return super().assign(_type)
+        if self.type_config != _type:
+            self.config_time = self.change_over[self.type_config][_type]
+            self.state = Machine.State[1]
+            return 1
+        return 0
 
 
 class BottlingMachine(Machine):
@@ -104,4 +102,7 @@ class BottlingMachine(Machine):
         return 0
 
     def assign(self, _type: int):
-        return super().assign(_type)
+        if self.type_config != _type:
+            self.config_time = self.change_over[self.type_config][_type]
+            return 1
+        return 0
