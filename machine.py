@@ -1,108 +1,104 @@
-bottle_per_liter = [1, 3]  # 1 unit -> big, 3 unit -> small
+# Ready: can add new process
+# Configuring: changing type
+# Processing: processing a patch    
+State = ["Ready", "Configuring", "Processing"]
+Unit_By_Litter = [1,3] # Exchange rate
+
+Phase_2_Reconfig = (
+    (0, 3, 3, 4, 4, 4),
+    (3, 0, 3, 4, 4, 4),
+    (3, 3, 0, 4, 4, 4),
+    (4, 4, 4, 0, 3, 3),
+    (4, 4, 4, 3, 0, 3),
+    (4, 4, 4, 3, 3, 0)
+)
 
 
-class Machine:
-    # Ready: can add new process
-    # Configuring: changing type
-    # Processing: processing a patch
-    State = ["Ready", "Configuring", "Processing"]
-
-    Mix_change = [[2 for _ in range(6)] for _ in range(6)]  # Constant
-
-    # Change-over matrix set Change over matrix[i][j]: change time from i -> j
-    Change_over = (
-        (0, 3, 3, 4, 4, 4),
-        (3, 0, 3, 4, 4, 4),
-        (3, 3, 0, 4, 4, 4),
-        (4, 4, 4, 0, 3, 3),
-        (4, 4, 4, 3, 0, 3),
-        (4, 4, 4, 3, 3, 0)
-    )
-
-    Job_Description = {
-        "Mixing": Mix_change,
-        "Bottling": Change_over
-    }
-
-    def __init__(self, capacity: int, time: int):
-        if time > 1:
-            self.counter = 0
-        #(variable) time: time per batch
+class MachinePhase1:
+    def __init__(self, capacity: int, time : int) -> None:
         self.time = time
-        # @variable : quantity per batch
-        self.capacity = capacity  
-        # @variable : pending configuration time
-        self.config_time :int = 0  
-        # @variavble : Current configuration
-        self.type_config = -1 
-        # @variable : Machine current state
-        self.state = Machine.State[0]
-        # @variable : change over time between 2 different config
-        self.change_over : list
+        self.count :int = 0
+        self.capacity = self.capacity
+        self.reconfig = 2
+        self.config_time : int = 0
+        self.config = -1
+        self.state = State[0]
 
-    # Activity to be done in a quantum time
-    # def process(self, quantity: int = 0)
-
-
-class MixingMachine(Machine):
-    def __init__(self, capacity: int, time: int):
-        """Create a new machine for the job
-
-        Args:
-            capacity (int) : batch size
-            time (int): time per batch
-        Returns:
-            MixingMachine: machine created
+    def process(self) -> int:
+        """ Run the machine for a Quantum time
+        If configuring: set time down to 
+        Else produce the batch
+        Return value is in Litter
         """
-        super().__init__(capacity, time)
-        self.change_over = Machine.Job_Description["Mixing"]
-
-    def process(self):
-        if self.state == Machine.State[1]:
-            self.config_time -= 1
-            if self.config_time == 0:
-                self.state = Machine.State[2]
-                self.counter = 2
-        elif self.state == Machine.State[2]:
-            self.counter -= 1
-            if self.counter == 0:
-                self.state = Machine.State[0]
+        if self.state == State[1]:
+            self.config_time -=1
+            if self.config_time ==0:
+                self.state =State[2]
+                self.count = self.time
+        elif self.state == State[2]:
+            self.count -=1
+            if self.count == 0:
                 self.counter = self.time
-                return self.capacity
+                return self.capacity 
         return 0
 
-    def assign(self, _type: int):
-        if self.type_config != _type:
-            self.config_time = self.change_over[self.type_config][_type]
-            self.state = Machine.State[1]
-            return 1
-        return 0
-
-
-class BottlingMachine(Machine):
-    def __init__(self, capacity : int, time:int = 0):
-        """Create a new machine for the job
-
-        Args:
-            capacity (int) : batch size
-        Returns:
-            BottlingMachine: machine created
+    def assign(self, job: int) -> None:
         """
-        super().__init__(capacity, time)
-        self.change_over = Machine.Job_Description["Bottling"]
+            Assign job to the machine
+            Args: 
+                job (int): job id
+            Return: None
+        """
+        if self.config == -1:
+            self.config = job
+            self.count = self.time
+            self.state = State[2]
+        elif self.config != job:
+            self.config = job
+            self.config_time = self.reconfig
+            self.state = State[1]
+        else:
+            pass
 
-    def process(self, quantity: int):
-        if self.state == Machine.State[1]:
-            if self.state == Machine.State[1]:
-                self.config_time -= 1
-                if self.config_time == 0:
-                    self.state = Machine.State[2]
-        elif self.state == Machine.State[2]:
-            return min(quantity, self.capacity)
-        return 0
 
-    def assign(self, _type: int):
-        if self.type_config != _type:
-            self.config_time = self.change_over[self.type_config][_type]
-            return 1
+class MachinePhase2:
+    def __init__(self, capacity: int) -> None:
+        self.count :int = 0
+        self.capacity = self.capacity
+        self.reconfig = 0
+        self.config_time : int = 0
+        self.config = -1
+        self.state = State[0]
+
+    def process(self, input: int) -> int:
+        """Process ammount of goods
+            Args: 
+                input: quantity to be produce (in L)
+            Return:
+                ammount processed upto its capacity or input (in Units)
+        """
+        if self.state== State[1]:
+            self.config_time -=1
+            if self.config_time == 0:
+                self.state = State[2]
+        elif self.state == State[2]:
+            return min(input, self.capacity) * Unit_By_Litter[self.config//3] # Majik number aka problem requirement
         return 0
+    
+    def assign(self, job: int) -> None:
+        """
+            Assign job to the machine
+            Args: 
+                job (int): job id
+            Return: None
+        """
+        if self.config == -1:
+            self.config = job
+            self.state = State[2]
+        elif self.config != job:
+            self.config_time = Phase_2_Reconfig[self.config][job]
+            self.config = job
+            self.state = State[1]
+        else:
+            pass
+

@@ -9,8 +9,8 @@ class Scheduler:
         # Rewrite this a bit
         # self.MList = [Machine(machine["job"], machine["capacity"]) for machine in machine_list]
         self.MList = [
-            MixingMachine(6000, 2),
             MixingMachine(12000, 2),
+            MixingMachine(6000, 2),
             BottlingMachine(3000),
             BottlingMachine(2800)
         ]
@@ -20,7 +20,7 @@ class Scheduler:
         self.Phase0 = [demand for demand in task_list]  # Demand
         self.Phase1 = [0 for _ in range(self.numberOfTask)]  # Mixed
         self.Phase2 = [0 for _ in range(self.numberOfTask)]  # Bottled / Finished
-        self.Schedule = []
+        # self.Schedule = []
         self.Time_limit = Total_time
         # Task on machine _ time on task
         self.Operating = [[-1, 8] for _ in range(self.numberOfMachine)]
@@ -75,7 +75,9 @@ class Scheduler:
         # Wait for dependence if producing
         # Else assign a new task
         # Not enough requirement for producing
-        if self.Phase1[current_task] <= 0:
+        if current_task == -1 and sum(self.Phase1) > 0:
+            self.dispatcher(machine_id, machine_id % 2)
+        elif self.Phase1[current_task] <= 0:
             # If another machine is producing its dependence then wait for it
             if self.Operating[0][0] == current_task or self.Operating[1][0] == current_task:
                 pass
