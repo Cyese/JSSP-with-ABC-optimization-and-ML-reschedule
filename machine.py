@@ -85,7 +85,7 @@ class MachinePhase2:
             if self.config_time == 0:
                 self.state = State[2]
         elif self.state == State[2]:
-            return min(quantity, self.capacity) * Unit_By_Litter[self.config // 3]  # problem requirement
+            return min(quantity, self.capacity)  # * Unit_By_Litter[self.config // 3]  # problem requirement
         return 0
 
     def assign(self, job: int) -> None:

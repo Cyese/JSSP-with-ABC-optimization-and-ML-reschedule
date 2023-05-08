@@ -76,11 +76,12 @@ class Schedule:
             task = self.TaskByLine1
         else:
             task = self.TaskByLine2
-
         if self.Table[1][self.MachineLine[line][1].get_config()] <= 0 or self.MachineLine[line][1].get_config() == -1:
             # No more to produce
             choice = get_max(self.Table, task)
             if choice == -1:
+                self.Operate[line][1][0] = choice
+                self.Operate[line][1][1] = 0
                 return
             self.MachineLine[line][1].assign(choice)
             self.Operate[line][1][0] = choice
@@ -133,7 +134,7 @@ class Schedule:
             self.arrange_P2(line)
         return sum(self.Table[0]) == 0 and sum(self.Table[1]) == 0
 
-    def run(self) -> list:
+    def run(self) -> tuple[list, int]:
         result = []
         cycle = 0
         while cycle <= self.limit:
@@ -143,8 +144,8 @@ class Schedule:
                 break
             else:
                 cycle += 1
-        return result
+        return result, cycle
 
-    def append(self, task: list[int]):
+    def add(self, task: list[int]):
         for i in range(6):
             self.Table[0][i] += task[i]
