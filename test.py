@@ -1,18 +1,24 @@
-from schedule import *
+from schedu import *
 # import matplotlib
 
 
 path = r"D:/Project/SisThesis/"
 data = pd.read_excel(path+"data.xlsx", sheet_name=2, usecols="B:G")
-
-Demand1 = [int(data.loc[0][_]) for _ in range(6)]
-Demand2 = [int(data.loc[1][_]) for _ in range(6)]
+x = 206
+Demand1 = [int(data.loc[x][_]) for _ in range(6)]
+Demand2 = [int(data.loc[x+1][_]) for _ in range(6)]
+Total = [Demand2[_] + Demand1[_] for _ in range(6)]
 for index in range(3, 6):
-    Demand1[index] //= 3
+    Total[index] //= 3
+    # Demand2[index] //= 3
 
-schedule = Schedule(Demand1)
-schedule.add(Demand2)
-result, cycle = schedule.run()
+schedule = Schedule(Total)
+# schedule.add(Demand2)
+result, cycle, output = schedule.run()
+
+file = open("sample_init_sched.txt", "w+")
 for timestamp in result:
-    print(timestamp)
+    file.writelines(' '.join(str(ele) for ele in timestamp) + '\n') 
 print(cycle)
+print(output)
+print(Total)
