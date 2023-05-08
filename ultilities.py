@@ -3,7 +3,7 @@ import numpy as np
 
 
 def check(arr: list):
-    """Check if all opertaion is empty ( $==0 )
+    """Check if all operation is empty ( $==0 )
         @param arr: list of demand/pending task
         @return : all empty -> true
     """
@@ -20,7 +20,7 @@ def make_operation_node(arr: list[list[list[int]]]) -> list[int]:
     """
     result = [0 for i in range(4)]
     for i in range(4):
-        result[i] = arr[i//2][i%2][1]
+        result[i] = arr[i // 2][i % 2][0]
     return result
 
 
@@ -34,10 +34,11 @@ def split_task(arr: list) -> tuple:
         second.append(arr.index(i))
     return first, second
 
-def get_max(table : list, task: list) -> int:
+
+def get_max(table: list, task: list) -> int:
     _max = 0
     for i in task:
         _max = max(_max, table[1][i])
     if _max == 0:
-        return -1 
+        return -1
     return table[1].index(_max)

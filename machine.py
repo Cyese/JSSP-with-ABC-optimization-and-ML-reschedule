@@ -2,7 +2,7 @@
 # Configuring: changing type
 # Processing: processing a patch    
 State = ["Ready", "Configuring", "Processing"]
-Unit_By_Litter = [1,3] # Exchange rate
+Unit_By_Litter = [1, 3]  # Exchange rate
 
 Phase_2_Reconfig = (
     (0, 3, 3, 4, 4, 4),
@@ -15,12 +15,12 @@ Phase_2_Reconfig = (
 
 
 class MachinePhase1:
-    def __init__(self, capacity: int, time : int) -> None:
+    def __init__(self, capacity: int, time: int) -> None:
         self.time = time
-        self.count :int = 0
+        self.count: int = 0
         self.capacity = capacity
         self.reconfig = 2
-        self.config_time : int = 0
+        self.config_time: int = 0
         self.config = -1
         self.state = State[0]
 
@@ -31,15 +31,15 @@ class MachinePhase1:
         Return value is in Litter
         """
         if self.state == State[1]:
-            self.config_time -=1
-            if self.config_time ==0:
-                self.state =State[2]
+            self.config_time -= 1
+            if self.config_time == 0:
+                self.state = State[2]
                 self.count = self.time
         elif self.state == State[2]:
-            self.count -=1
             if self.count == 0:
-                self.counter = self.time
-                return self.capacity 
+                self.count = self.time
+                return self.capacity
+            self.count -= 1
         return 0
 
     def assign(self, job: int) -> None:
@@ -59,35 +59,35 @@ class MachinePhase1:
             self.state = State[1]
         else:
             pass
-    
+
     def get_config(self):
         return self.config
 
 
 class MachinePhase2:
     def __init__(self, capacity: int) -> None:
-        self.count :int = 0
+        self.count: int = 0
         self.capacity = capacity
         self.reconfig = 0
-        self.config_time : int = 0
+        self.config_time: int = 0
         self.config = -1
         self.state = State[0]
 
-    def process(self, input: int = 1000000) -> int:
-        """Process ammount of goods
+    def process(self, quantity: int = 0) -> int:
+        """Process amount of goods
             Args: 
-                input: quantity to be produce (in L)
+                quantity: quantity to be produce (in L)
             Return
-                ammount processed upto its capacity or input (in Units)
+                amount processed upto its capacity or input (in Units)
         """
-        if self.state== State[1]:
-            self.config_time -=1
+        if self.state == State[1]:
+            self.config_time -= 1
             if self.config_time == 0:
                 self.state = State[2]
         elif self.state == State[2]:
-            return min(input, self.capacity) * Unit_By_Litter[self.config//3] # Majik number aka problem requirement
+            return min(quantity, self.capacity) * Unit_By_Litter[self.config // 3]  # problem requirement
         return 0
-    
+
     def assign(self, job: int) -> None:
         """
             Assign job to the machine
@@ -104,7 +104,6 @@ class MachinePhase2:
             self.state = State[1]
         else:
             pass
-    
+
     def get_config(self):
         return self.config
-    
