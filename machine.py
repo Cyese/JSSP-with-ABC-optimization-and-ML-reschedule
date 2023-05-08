@@ -18,13 +18,13 @@ class MachinePhase1:
     def __init__(self, capacity: int, time : int) -> None:
         self.time = time
         self.count :int = 0
-        self.capacity = self.capacity
+        self.capacity = capacity
         self.reconfig = 2
         self.config_time : int = 0
         self.config = -1
         self.state = State[0]
 
-    def process(self) -> int:
+    def process(self, _: int = 0) -> int:
         """ Run the machine for a Quantum time
         If configuring: set time down to 
         Else produce the batch
@@ -59,22 +59,25 @@ class MachinePhase1:
             self.state = State[1]
         else:
             pass
+    
+    def get_config(self):
+        return self.config
 
 
 class MachinePhase2:
     def __init__(self, capacity: int) -> None:
         self.count :int = 0
-        self.capacity = self.capacity
+        self.capacity = capacity
         self.reconfig = 0
         self.config_time : int = 0
         self.config = -1
         self.state = State[0]
 
-    def process(self, input: int) -> int:
+    def process(self, input: int = 1000000) -> int:
         """Process ammount of goods
             Args: 
                 input: quantity to be produce (in L)
-            Return:
+            Return
                 ammount processed upto its capacity or input (in Units)
         """
         if self.state== State[1]:
@@ -101,4 +104,7 @@ class MachinePhase2:
             self.state = State[1]
         else:
             pass
-
+    
+    def get_config(self):
+        return self.config
+    

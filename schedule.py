@@ -1,120 +1,135 @@
 from machine import *
 from ultilities import *
+# from queue import Queue
 
-Total_time = 16 * 5 * 2
+Total_time = 16*5*2
 
 
-class Scheduler:
-    def __init__(self, task_list: list[int]):
-        # Rewrite this a bit
-        # self.MList = [Machine(machine["job"], machine["capacity"]) for machine in machine_list]
-        self.MList = [
-            MixingMachine(12000, 2),
-            MixingMachine(6000, 2),
-            BottlingMachine(3000),
-            BottlingMachine(2800)
-        ]
+class Schedule:
+    def __init__(self, task_list: list[int|float]) -> None:
+        # 2 Line of production
+        self.MachineLine : list[list[MachinePhase1 | MachinePhase2]]
+        
+        
+        self.MachineLine = [[
+            MachinePhase1(12000,2),
+            MachinePhase2(3000)
+        ],[
+            MachinePhase1(6000,2),
+            MachinePhase2(2800)
+        ]]
+        # Task for storing all pending task
+        # Table[x -> Phase][y -> Task]
+        # self.Tasks = [task for task in task_list]
+        self.TaskByLine1 : list[int]
+        self.TaskByLine2 : list[int]
+        self.Table = [[task for task in task_list],
+                        [0 for _ in range(6)],
+                        [0 for _ in range(6)]
+                    ]
+        self.limit = Total_time
+        self.arange_task()
+        # Operate[x -> Line][y -> Phase][z : 0 | 1 -> task | cycle_tim 
+        self.Operate = [[[-1,8] for _ in range(2)],[[-1,8] for _ in range(2)]]
+        self.Queue1 = []
+        self.Queue2 = []
+        return
 
-        self.numberOfTask = len(task_list)
-        self.numberOfMachine = 4
-        self.Phase0 = [demand for demand in task_list]  # Demand
-        self.Phase1 = [0 for _ in range(self.numberOfTask)]  # Mixed
-        self.Phase2 = [0 for _ in range(self.numberOfTask)]  # Bottled / Finished
-        # self.Schedule = []
-        self.Time_limit = Total_time
-        # Task on machine _ time on task
-        self.Operating = [[-1, 8] for _ in range(self.numberOfMachine)]
+    def arange_task(self) -> None:
+        self.TaskByLine1, self.TaskByLine2 = split_task(self.Table[0])
+        return
 
-    # Use for assigning new task to a machine
-    def dispatcher(self, machine_id: int, phase: int, rate_decision: int = 0):
-        task: list
-        if phase == 0:
-            task = self.Phase0
-        elif phase == 1:
-            task = self.Phase1
-        # Just ignore this ~ ~ that branch is never reached
+    def dispatch_P1(self, line: int, rate_decision : int = 0) -> None:
+        task : list[int]
+        if line ==1:
+            task = self.TaskByLine1
         else:
-            task = self.Phase2
+            task = self.TaskByLine2
         rate = []
-        for index in range(self.numberOfTask):
-            ref_value = task[index] / self.MList[machine_id].capacity
-            if index != self.MList[machine_id].type_config:
-                ref_value += 2
-            rate.append(ref_value)
+        for i in range(3):
+            value = self.Table[0][task[i]]/ self.MachineLine[line][1].capacity
+            rate.append(value)
         rate = np.array(rate)
-        prate = None
         if rate.sum() == 0:
-            return -1
-        if rate_decision == 0:
-            prate = rate / rate.sum()
-        elif rate_decision == 1:
-            rate = rate.sum() / rate
-            prate = rate / rate.sum()
-        choice = np.random.choice(range(self.numberOfTask), p=prate)
-        self.MList[machine_id].assign(choice)
-        self.Operating[machine_id] = [choice, 0]
-
-    def arrange_phase_1(self, machine_id: int):
-        current_task = self.MList[machine_id].type_config
-        # Limit cycle = 8h (8 quantum time/time slot)
-        # If exceed cycle || no more demand -> choose another process to assign
-        if self.Operating[machine_id][0] == -1 and sum(self.Phase0) == 0:
-            pass
-        if self.Operating[machine_id][1] == 8:
-            self.dispatcher(machine_id, machine_id % 2)
-        output = self.MList[machine_id].process()
-        self.Operating[machine_id][1] += 1
-        self.Phase0[current_task] -= output
-        if self.Phase0[current_task] <= 0:
-            self.Phase0[current_task] = 0
-            self.dispatcher(machine_id, machine_id % 2)
-        self.Phase1[current_task] += output
-
-    def arrange_phase_2(self, machine_id: int):
-        current_task = self.MList[machine_id].type_config
-        # Wait for dependence if producing
-        # Else assign a new task
-        # Not enough requirement for producing
-        if current_task == -1 and sum(self.Phase1) > 0:
-            self.dispatcher(machine_id, machine_id % 2)
-        elif self.Phase1[current_task] <= 0:
-            # If another machine is producing its dependence then wait for it
-            if self.Operating[0][0] == current_task or self.Operating[1][0] == current_task:
-                pass
-                # Else assign a new task for the machine
-                # else:
-                self.dispatcher(machine_id, machine_id % 2)
-        # Produce like normal
+            choice = -1 
         else:
-            output = self.MList[machine_id].process(self.Phase1[current_task])
-            self.Phase1[current_task] -= output
-            self.Phase2[current_task] += output
-
-    # Scheduling for each quantum time this is for
-    def arrange(self):
-        for machine_id in range(len(self.MList)):
-            if machine_id < 2:
-                self.arrange_phase_1(machine_id)
+            if rate_decision ==1: 
+                rate = rate.sum()/ rate
+                prate = rate/ rate.sum()
             else:
-                self.arrange_phase_2(machine_id)
-        return check(self.Phase0) and check(self.Phase1)
+                prate = rate /rate.sum()
+            choice = np.random.choice(task, p=prate)
+        self.MachineLine[line][0].assign(choice)
+        self.Operate[line][0] = [choice, 0]
+        return
+    
+    def dispatch_P2(self, line: int) -> None:
+        task : list[int]
+        # choice : int
+        if line ==1:
+            task = self.TaskByLine1
+        else:
+            task = self.TaskByLine2
+        
+        if sum(self.Table[self.MachineLine[line][1].get_config()]) <= 0: # No more to produce
+            choice = get_max(self.Table, task)
+            if choice == -1:
+                pass
+            else: 
+                self.MachineLine[line][1].assign(choice)
 
-    # Add optimizer that loop through all quantum time and run scheduler for each quantum time
-    def run(self):
-        counter = 0
-        result = []
-        while counter < self.Time_limit:
-            stopped = self.arrange()
-            result.append(operation_node(self.Operating))
-            if stopped:
-                return True, result
-        return False, result
+    def arrange_P1(self, line:int):
+        if self.Operate[line][0][0] == -1 and sum(self.Table[0]) == 0:
+            return
+        if self.Operate[line][0][1] == 8:
+            self.dispatch_P1(line,line)
+        current_task = self.MachineLine[line][0].get_config()
+        if current_task ==-1:
+            return
+        ouput = self.MachineLine[line][0].process()
+        self.Operate[line][0][1] += 1
+        self.Table[0][current_task] -= ouput
+        self.Table[1][current_task] += ouput
+        if self.Table[0][current_task]==0:
+            self.dispatch_P1(line,line)
+        return
 
-    # If needed to add a new week to current schedule
-    def append(self, arr: list[int]):
-        """Add weekly demand to current schedule:
-            @param arr: list of demand
-            @return: None
+    def arrange_P2(self, line : int) -> None:
+        task : list[int]
+        # choice : int
+        if line ==1:
+            task = self.TaskByLine1
+        else:
+            task = self.TaskByLine2
+        current_task = self.MachineLine[line][1].get_config()
+        if self.Table[1][current_task] <= 0:
+            if self.MachineLine[line][0].get_config() == current_task:
+                return
+            else: self.dispatch_P2(line)
+        else:
+            output = self.MachineLine[line][1].process(self.Table[1][current_task])
+            self.Table[2][current_task] += output
+            self.Table[1][current_task] -= output
+        return
+    
+    def arrrange(self) -> bool:
+        """Invoke a cycle in all machine
+            Returns: is done with all process
         """
-        for i in range(self.numberOfTask):
-            self.Phase0[i] += arr[i]
+        for line in range(2):
+            self.arrange_P1(line)
+            self.arrange_P2(line)
+        return sum(self.Table[0])==0 and sum(self.Table[1])==0
+
+    def run(self) -> list:
+        result = []
+        cycle = 0
+        while cycle <= self.limit:
+            Is_done = self.arrrange()
+            result.append(make_operation_node(self.Operate))
+        
+        return result 
+    
+    def append(self, task: list[int]):
+        for i in range(6):
+            self.Table[0][i] += task[i]
