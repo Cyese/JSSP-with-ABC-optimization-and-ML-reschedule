@@ -108,7 +108,7 @@ class MachinePhase2:
     def get_config(self):
         if self.state== State[1]:
             return 7
-        # elif self.config == -1:
-        #     return 8
+        elif self.config == -1:
+            return 8
         else:
             return self.config

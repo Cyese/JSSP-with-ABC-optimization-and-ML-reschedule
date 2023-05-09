@@ -27,15 +27,15 @@ def make_operation_node(arr: list[MachinePhase1|MachinePhase2]) -> list[int]:
     return result
 
 
-# def split_task(arr: list) -> tuple:
-#     arr2 = list(arr)
-#     first = []
-#     second = []
-#     for _ in range(3):
-#         first.append(arr.index(arr2.pop(arr2.index(max(arr2)))))
-#     for i in arr2:
-#         second.append(arr.index(i))
-#     return first, second
+def split_task(arr: list) -> tuple:
+    arr2 = list(arr)
+    first = []
+    second = []
+    for _ in range(3):
+        first.append(arr.index(arr2.pop(arr2.index(max(arr2)))))
+    for i in arr2:
+        second.append(arr.index(i))
+    return first, second
 
 
 def get_max(table: list, task: list[bool]) -> int:

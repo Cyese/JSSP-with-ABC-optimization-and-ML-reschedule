@@ -1,4 +1,4 @@
-from schedu import *
+from schedule import *
 # import matplotlib
 
 
