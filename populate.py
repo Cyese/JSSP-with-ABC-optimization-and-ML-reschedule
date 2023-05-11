@@ -19,29 +19,28 @@ def populated(weeks: int):
     Demand1 = [int(data.loc[weeks][_]) for _ in range(6)]
     Demand2 = [int(data.loc[weeks+1][_]) for _ in range(6)]
     Total = [Demand2[_] + Demand1[_] for _ in range(6)]
-    Makespan= [0 for _ in range(100)]
+    make_span = [0 for _ in range(100)]
     for index in range(3, 6):
         Total[index] //= 3
     Batch = [int(np.ceil(_/9000)) for _ in Total]
-    for invidual in range(100):
+    for route in range(100):
         schedule = Schedule(Total)
         result, cycle, output = schedule.run()
-        file = open(write_Path + "invi_{}.txt".format(invidual), "w+")
+        file = open(write_Path + "path_{}.txt".format(route), "w+")
         for machine in result:
             file.writelines(' '.join(str(ele) for ele in machine) + '\n')
         # file.write(str(cycle))
-        Makespan[invidual] = cycle
+        make_span[route] = cycle
         output = [int(np.ceil(_/9000)) for _ in output]
         Diff = False
         for i in range(len(Batch)):
             Diff = Diff or output[i] != Batch[i]
         if Diff:
-            print("Different at invidiual No.{}".format(invidual))
+            print("Different at path No.{}".format(route))
     print(Batch)
     
-    with open(write_Path+ "span.txt", "w+") as fitness_file:
-        fitness_file.writelines(str(ele) + '\n' for ele in Makespan)
-    # file = open("sample_init_sched.txt", "w+")
+    with open(write_Path + "span.txt", "w+") as fitness_file:
+        fitness_file.writelines(str(ele) + '\n' for ele in make_span)
     # for timestamp in result:
     #     file.writelines(' '.join(str(ele) for ele in timestamp) + '\n') 
     # print(cycle)

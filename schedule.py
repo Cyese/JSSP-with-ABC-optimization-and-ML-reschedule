@@ -17,7 +17,7 @@ class Schedule:
         # Task for storing all pending task
         # Table[x -> Phase][y -> Task]
         # self.Tasks = [task for task in task_list]
-        self.TaskByPhase1 = [False for _ in range(6)]  # Mark which task is currently distrubuted
+        self.TaskByPhase1 = [False for _ in range(6)]  # Mark which task is currently distributed
         self.TaskByPhase2 = [False for _ in range(6)]  # Same from above
         self.Table = [[task for task in task_list],
                       [0 for _ in range(6)],
@@ -53,7 +53,8 @@ class Schedule:
                 prate = rate / rate.sum()
             choice = np.random.choice(choice_list, p=prate)
         self.MachineLine[machine_id].assign(choice)
-        self.TaskByPhase1[choice] = True
+        if choice != -1:
+            self.TaskByPhase1[choice] = True
         self.Operate[machine_id][0] = choice
         self.Operate[machine_id][1] = 0
         return
@@ -70,7 +71,7 @@ class Schedule:
                 self.Operate[machine_id][0] = choice
                 # self.Operate[id][1] = 0
                 return
-            current = self.Operate[machine_id][0]
+            # current = self.Operate[machine_id][0]
             self.MachineLine[machine_id].assign(choice)
             self.Operate[machine_id][0] = choice
             self.Operate[machine_id][1] = 0
@@ -79,7 +80,8 @@ class Schedule:
     def arrange_P1(self, machine_id: int):
         if self.Operate[machine_id][0] == -1 and sum(self.Table[0]) == 0:
             self.MachineLine[machine_id].assign(-1)
-        if self.Operate[machine_id][1] == 8:
+        current_task = self.MachineLine[machine_id].config
+        if self.Operate[machine_id][1] == 8 or self.Table[0][current_task] <= 0:
             self.dispatch_P1(machine_id, machine_id)
         current_task = self.MachineLine[machine_id].config
         if current_task == -1:
@@ -94,7 +96,7 @@ class Schedule:
             #     self.TaskByLine1.pop(self.TaskByLine1.index(current_task))
             # else:
             #     self.TaskByLine2.pop(self.TaskByLine2.index(current_task))
-            self.dispatch_P1(machine_id, machine_id)
+            # self.dispatch_P1(machine_id, machine_id)
         return
 
     def arrange_P2(self, machine_id: int) -> None:

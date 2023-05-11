@@ -57,9 +57,9 @@ def unassigned(arr: list[list[int]]) -> bool:
     return False
 
 
-def ORead(weeks: int, invi: int) -> list:
+def ORead(weeks: int, path: int) -> list:
     result = []
-    with open("D:/Project/SisThesis/population/week_{}/invi_{}.txt".format(weeks, invi), "r") as file:
+    with open("D:/Project/SisThesis/population/week_{}/path_{}.txt".format(weeks, path), "r") as file:
         lines = file.readlines()
     for line in lines:
         result.append([int(_) for _ in line.split() if _ != '7' and _ != '8'])
@@ -76,3 +76,15 @@ def compress(arr: list[list[int]]) -> list:
     result.append(arr[2])
     result.append(arr[3])
     return result
+
+
+def multi_index(arr: list[int], value: int) -> list[int]:
+    result = []
+    for index in range(len(arr)):
+        if arr[index] == value:
+            result.append(index)
+    return result
+
+
+
+

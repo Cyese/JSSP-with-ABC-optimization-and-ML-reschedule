@@ -30,16 +30,17 @@ class MachinePhase1:
         Else produce the batch
         Return value is in Litter
         """
-        if self.state == State[1]:
+        if self.state == State[1] and self.config_time >= 1:
             self.config_time -= 1
-            if self.config_time == 0:
-                self.state = State[2]
-                self.count = self.time
+        elif self.config_time == 0:  # and self.state == State[1]:
+            self.config_time -= 1
+            self.state = State[2]
+            self.count = self.time -1
         elif self.state == State[2]:
+            self.count -= 1
             if self.count == 0:
                 self.count = self.time
                 return self.capacity
-            self.count -= 1
         return 0
 
     def assign(self, job: int) -> None:
@@ -60,8 +61,13 @@ class MachinePhase1:
         else:
             pass
 
-    def get_config(self):
-        return self.config
+    def get_config(self) -> int:
+        if self.state == State[1]:
+            return 7
+        elif self.config == -1:
+            return 8
+        else:
+            return self.config
 
 
 class MachinePhase2:
@@ -80,10 +86,12 @@ class MachinePhase2:
             Return
                 amount processed upto its capacity or input (in Units)
         """
-        if self.state == State[1]:
+        if self.state == State[1] and self.config_time > 1:
             self.config_time -= 1
-            if self.config_time == 0:
-                self.state = State[2]
+        elif self.config_time == 1:  # and self.state == State[1]:
+            self.config_time -= 1
+            self.state = State[2]
+            # self.count = self.time
         elif self.state == State[2]:
             return min(quantity, self.capacity)  # * Unit_By_Litter[self.config // 3]  # problem requirement
         return 0
@@ -105,8 +113,8 @@ class MachinePhase2:
         else:
             pass
 
-    def get_config(self):
-        if self.state== State[1]:
+    def get_config(self) -> int:
+        if self.state == State[1]:
             return 7
         elif self.config == -1:
             return 8
