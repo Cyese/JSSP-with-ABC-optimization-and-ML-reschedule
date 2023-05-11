@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python: Populate",
             "type": "python",
             "request": "launch",
-            "program": "populate.py",
+            "program": "./populate.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }

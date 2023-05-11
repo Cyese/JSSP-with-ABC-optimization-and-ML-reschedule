@@ -9,10 +9,10 @@ class Schedule:
         self.MachineLine: list[MachinePhase1 | MachinePhase2]
 
         self.MachineLine = [
-            MachinePhase1(12000, 2),
-            MachinePhase1(6000, 2),
-            MachinePhase2(3000),
-            MachinePhase2(2800)
+            MachinePhase1(9000, 2),
+            MachinePhase1(9000, 2),
+            MachinePhase2(4500),
+            MachinePhase2(4500)
         ]
         # Task for storing all pending task
         # Table[x -> Phase][y -> Task]

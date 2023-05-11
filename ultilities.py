@@ -55,3 +55,5 @@ def unassigned(arr: list[list[int]]) -> bool:
         if arr[x][0] == -1:
             return True
     return False
+
+# def 

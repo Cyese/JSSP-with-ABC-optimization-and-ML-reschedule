@@ -22,6 +22,7 @@ def populated(weeks: int):
     Makespan= [0 for _ in range(100)]
     for index in range(3, 6):
         Total[index] //= 3
+    Batch = [int(np.ceil(_/9000)) for _ in Total]
     for invidual in range(100):
         schedule = Schedule(Total)
         result, cycle, output = schedule.run()
@@ -30,6 +31,13 @@ def populated(weeks: int):
             file.writelines(' '.join(str(ele) for ele in machine) + '\n')
         # file.write(str(cycle))
         Makespan[invidual] = cycle
+        output = [int(np.ceil(_/9000)) for _ in output]
+        Diff = False
+        for i in range(len(Batch)):
+            Diff = Diff or output[i] != Batch[i]
+        if Diff:
+            print("Different at invidiual No.{}".format(invidual))
+    print(Batch)
     
     with open(write_Path+ "span.txt", "w+") as fitness_file:
         fitness_file.writelines(str(ele) + '\n' for ele in Makespan)
@@ -37,7 +45,6 @@ def populated(weeks: int):
     # for timestamp in result:
     #     file.writelines(' '.join(str(ele) for ele in timestamp) + '\n') 
     # print(cycle)
-    # print(output)
     # print(Total)
 
-populated(0)
+# populated(2)
