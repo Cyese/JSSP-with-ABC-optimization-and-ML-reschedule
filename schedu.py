@@ -27,7 +27,6 @@ class Schedule:
         # self.arrange_task()
         # Operate[x -> Line][y -> Phase][z : 0 | 1 -> task | cycle_time]
         self.Operate = [[-1, 8] for _ in range(4)]
-        self.PenaltyTime = [4,3,8,16]
         return
 
     def dispatch_P1(self, machine_id: int, rate_decision: int = 0) -> None:
@@ -116,35 +115,28 @@ class Schedule:
             Returns: is done with all process
         """
         for machine_id in range(4):
-            if self.PenaltyTime[machine_id] >0:
-                self.PenaltyTime[machine_id] -= 1
-            elif machine_id // 2 == 0:
+            if machine_id // 2 == 0:
                 self.arrange_P1(machine_id)
             else:
                 self.arrange_P2(machine_id)
-        # if unassigned(self.Operate):
-        #     for machine_id in range(4):
-        #         if machine_id // 2 == 0 and self.Operate[machine_id][0] == -1:
-        #             self.arrange_P1(machine_id)
-        #         elif self.Operate[machine_id][0] == -1:
-        #             self.arrange_P2(machine_id)
+        if unassigned(self.Operate):
+            for machine_id in range(4):
+                if machine_id // 2 == 0 and self.Operate[machine_id][0] == -1:
+                    self.arrange_P1(machine_id)
+                elif self.Operate[machine_id][0] == -1:
+                    self.arrange_P2(machine_id)
         return sum(self.Table[0]) == 0 and sum(self.Table[1]) == 0
 
     def run(self) -> tuple[list, int, list]:
-        result = [[] for _ in range(4)]
+        result = []
         cycle = 0
         while cycle <= self.limit:
             Is_done = self.arrange()
-            for i in range(4):
-                result[i].append(self.MachineLine[i].get_config())
+            result.append(make_operation_node(self.MachineLine))
             if Is_done:
                 break
             else:
                 cycle += 1
-        for y in range(4):
-            for x in range(cycle+1):
-                if result[y][x]== -1:
-                    result[y][x] = 8
         return result, cycle, self.Table[2]
 
     def add(self, task: list[int]):

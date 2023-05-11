@@ -19,6 +19,7 @@ def populated(weeks: int):
     Demand1 = [int(data.loc[weeks][_]) for _ in range(6)]
     Demand2 = [int(data.loc[weeks+1][_]) for _ in range(6)]
     Total = [Demand2[_] + Demand1[_] for _ in range(6)]
+    Makespan= [0 for _ in range(100)]
     for index in range(3, 6):
         Total[index] //= 3
     for invidual in range(100):
@@ -27,8 +28,11 @@ def populated(weeks: int):
         file = open(write_Path + "invi_{}.txt".format(invidual), "w+")
         for machine in result:
             file.writelines(' '.join(str(ele) for ele in machine) + '\n')
-        file.write(str(cycle))
-        
+        # file.write(str(cycle))
+        Makespan[invidual] = cycle
+    
+    with open(write_Path+ "span.txt", "w+") as fitness_file:
+        fitness_file.writelines(str(ele) + '\n' for ele in Makespan)
     # file = open("sample_init_sched.txt", "w+")
     # for timestamp in result:
     #     file.writelines(' '.join(str(ele) for ele in timestamp) + '\n') 
@@ -36,4 +40,4 @@ def populated(weeks: int):
     # print(output)
     # print(Total)
 
-populated(200)
+populated(0)
