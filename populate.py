@@ -47,4 +47,5 @@ def populated(weeks: int):
     # print(cycle)
     # print(Total)
 
-# populated(2)
+
+populated(0)

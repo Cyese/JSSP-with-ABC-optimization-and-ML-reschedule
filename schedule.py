@@ -27,7 +27,7 @@ class Schedule:
         # self.arrange_task()
         # Operate[x -> Line][y -> Phase][z : 0 | 1 -> task | cycle_time]
         self.Operate = [[-1, 8] for _ in range(4)]
-        self.PenaltyTime = [4,3,8,16]
+        self.PenaltyTime = [4, 3, 8, 16]
         return
 
     def dispatch_P1(self, machine_id: int, rate_decision: int = 0) -> None:
@@ -78,7 +78,7 @@ class Schedule:
 
     def arrange_P1(self, machine_id: int):
         if self.Operate[machine_id][0] == -1 and sum(self.Table[0]) == 0:
-            return
+            self.MachineLine[machine_id].assign(-1)
         if self.Operate[machine_id][1] == 8:
             self.dispatch_P1(machine_id, machine_id)
         current_task = self.MachineLine[machine_id].config
@@ -116,7 +116,7 @@ class Schedule:
             Returns: is done with all process
         """
         for machine_id in range(4):
-            if self.PenaltyTime[machine_id] >0:
+            if self.PenaltyTime[machine_id] > 0:
                 self.PenaltyTime[machine_id] -= 1
             elif machine_id // 2 == 0:
                 self.arrange_P1(machine_id)
@@ -142,8 +142,8 @@ class Schedule:
             else:
                 cycle += 1
         for y in range(4):
-            for x in range(cycle+1):
-                if result[y][x]== -1:
+            for x in range(cycle + 1):
+                if result[y][x] == -1:
                     result[y][x] = 8
         return result, cycle, self.Table[2]
 

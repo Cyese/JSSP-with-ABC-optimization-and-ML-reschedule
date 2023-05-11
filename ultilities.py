@@ -16,7 +16,7 @@ def check(arr: list):
     return No_More_Operation
 
 
-def make_operation_node(arr: list[MachinePhase1|MachinePhase2]) -> list[int]:
+def make_operation_node(arr: list[MachinePhase1 | MachinePhase2]) -> list[int]:
     """
         @param arr :2-D operating
         @return : list of operations
@@ -24,7 +24,7 @@ def make_operation_node(arr: list[MachinePhase1|MachinePhase2]) -> list[int]:
     result = [0 for i in range(4)]
     for i in range(4):
         result[i] = arr[i].get_config()
-        if result[i] ==-1:
+        if result[i] == -1:
             result[i] = 8
     return result
 
@@ -56,4 +56,23 @@ def unassigned(arr: list[list[int]]) -> bool:
             return True
     return False
 
-# def 
+
+def ORead(weeks: int, invi: int) -> list:
+    result = []
+    with open("D:/Project/SisThesis/population/week_{}/invi_{}.txt".format(weeks, invi), "r") as file:
+        lines = file.readlines()
+    for line in lines:
+        result.append([int(_) for _ in line.split() if _ != '7' and _ != '8'])
+    # print(temp) 
+    return compress(result)
+    # return result
+
+
+def compress(arr: list[list[int]]) -> list:
+    result = []
+    for x in range(2):
+        compressed = [arr[x][index] for index in range(len(arr[x])) if index % 2 == 0]
+        result.append(compressed)
+    result.append(arr[2])
+    result.append(arr[3])
+    return result
