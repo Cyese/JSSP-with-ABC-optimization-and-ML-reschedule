@@ -69,7 +69,7 @@ class Schedule:
                 self.TaskByPhase2[current] = False
             if choice == -1:
                 self.Operate[machine_id][0] = choice
-                # self.Operate[id][1] = 0
+                self.MachineLine[machine_id].assign(choice)
                 return
             # current = self.Operate[machine_id][0]
             self.MachineLine[machine_id].assign(choice)
@@ -103,12 +103,11 @@ class Schedule:
         current_task = self.MachineLine[machine_id].config
         if current_task == -1:
             self.dispatch_P2(machine_id)
-            current_task = self.MachineLine[machine_id].config
-            self.MachineLine[machine_id].process(self.Table[1][current_task])
+            self.MachineLine[machine_id].process()
         elif self.Table[1][current_task] <= 0:
             self.dispatch_P2(machine_id)
         else:
-            output = self.MachineLine[machine_id].process(self.Table[1][current_task])
+            output = self.MachineLine[machine_id].process()
             self.Table[2][current_task] += output
             self.Table[1][current_task] -= output
         return
@@ -117,7 +116,7 @@ class Schedule:
         """Invoke a cycle in all machine
             Returns: is done with all process
         """
-        for machine_id in range(4):
+        for machine_id in [3, 2, 1, 0]:  # range(4):
             if self.PenaltyTime[machine_id] > 0:
                 self.PenaltyTime[machine_id] -= 1
             elif machine_id // 2 == 0:

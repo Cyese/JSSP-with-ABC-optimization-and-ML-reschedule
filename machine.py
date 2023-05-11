@@ -24,7 +24,7 @@ class MachinePhase1:
         self.config = -1
         self.state = State[0]
 
-    def process(self, _: int = 0) -> int:
+    def process(self) -> int:
         """ Run the machine for a Quantum time
         If configuring: set time down to 
         Else produce the batch
@@ -79,7 +79,7 @@ class MachinePhase2:
         self.config = -1
         self.state = State[0]
 
-    def process(self, quantity: int = 0) -> int:
+    def process(self) -> int:
         """Process amount of goods
             Args: 
                 quantity: quantity to be produce (in L)
@@ -93,7 +93,7 @@ class MachinePhase2:
             self.state = State[2]
             # self.count = self.time
         elif self.state == State[2]:
-            return min(quantity, self.capacity)  # * Unit_By_Litter[self.config // 3]  # problem requirement
+            return self.capacity  # * Unit_By_Litter[self.config // 3]  # problem requirement
         return 0
 
     def assign(self, job: int) -> None:

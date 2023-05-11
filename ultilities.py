@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-# import matplotlib
+import matplotlib.pyplot as plot
 import os
 from machine import *
 
@@ -21,7 +21,7 @@ def make_operation_node(arr: list[MachinePhase1 | MachinePhase2]) -> list[int]:
         @param arr :2-D operating
         @return : list of operations
     """
-    result = [0 for i in range(4)]
+    result = [0 for _ in range(4)]
     for i in range(4):
         result[i] = arr[i].get_config()
         if result[i] == -1:
@@ -86,5 +86,25 @@ def multi_index(arr: list[int], value: int) -> list[int]:
     return result
 
 
+def get_sequences(lst: list[int]):
+    # Initialize variables to track the current sequence
+    start_index = 0
+    current_value = lst[0]
+    current_length = 1
 
+    # Iterate over the list starting from the second element
+    for i in range(1, len(lst)):
+        if lst[i] == current_value:
+            # If the current element is the same as the previous element,
+            # increment the current sequence length
+            current_length += 1
+        else:
+            # If the current element is different from the previous element,
+            # yield the current sequence and start a new one
+            yield lst[start_index], start_index, current_length
+            start_index = i
+            current_value = lst[i]
+            current_length = 1
 
+    # Yield the final sequence
+    yield lst[start_index], start_index, current_length
