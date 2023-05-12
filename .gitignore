@@ -2,3 +2,5 @@ older_version/*
 population/*
 related_paper/*
 __pycache__
+.idea
+.vscode
