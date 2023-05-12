@@ -4,6 +4,9 @@ import matplotlib.pyplot as plot
 import os
 from machine import *
 
+path = r"./"
+write_out_path = path + "population/"
+
 
 def check(arr: list):
     """Check if all operation is empty ( $==0 )
@@ -29,15 +32,15 @@ def make_operation_node(arr: list[MachinePhase1 | MachinePhase2]) -> list[int]:
     return result
 
 
-def split_task(arr: list) -> tuple:
-    arr2 = list(arr)
-    first = []
-    second = []
-    for _ in range(3):
-        first.append(arr.index(arr2.pop(arr2.index(max(arr2)))))
-    for i in arr2:
-        second.append(arr.index(i))
-    return first, second
+# def split_task(arr: list) -> tuple:
+#     arr2 = list(arr)
+#     first = []
+#     second = []
+#     for _ in range(3):
+#         first.append(arr.index(arr2.pop(arr2.index(max(arr2)))))
+#     for i in arr2:
+#         second.append(arr.index(i))
+#     return first, second
 
 
 def get_max(table: list, task: list[bool]) -> int:
@@ -57,14 +60,19 @@ def unassigned(arr: list[list[int]]) -> bool:
     return False
 
 
-def ORead(weeks: int, path: int) -> list:
+def ORead(weeks: int, path: int) -> list[list[int]]:
     result = []
-    with open("D:/Project/SisThesis/population/week_{}/path_{}.txt".format(weeks, path), "r") as file:
+    # value : int = 0
+    with open(r"./population/week_{}/path_{}.txt".format(weeks, path), "r") as file:
         lines = file.readlines()
     for line in lines:
         result.append([int(_) for _ in line.split() if _ != '7' and _ != '8'])
     # print(temp) 
-    return compress(result)
+    # with open("./population/week_{}/span.txt".format(weeks), "r") as file:
+    #     for i,lines in enumerate(file):
+    #         if i == path -1:
+    #             value = int(lines.strip())
+    return compress(result)  #, value
     # return result
 
 
@@ -78,14 +86,14 @@ def compress(arr: list[list[int]]) -> list:
     return result
 
 
-def multi_index(arr: list[int], value: int) -> list[int]:
-    result = []
-    for index in range(len(arr)):
-        if arr[index] == value:
-            result.append(index)
-    return result
+# def multi_index(arr: list[int], value: int) -> list[int]:
+#     result = []
+#     for index in range(len(arr)):
+#         if arr[index] == value:
+#             result.append(index)
+#     return result
 
-
+## OpenAI code, quite useful
 def get_sequences(lst: list[int]):
     # Initialize variables to track the current sequence
     start_index = 0
@@ -108,3 +116,17 @@ def get_sequences(lst: list[int]):
 
     # Yield the final sequence
     yield lst[start_index], start_index, current_length
+
+
+def get_initial_fitness(weeks:int) -> tuple[list[int], list[int]]:
+    result :list[int]
+    fitness_value : list[int]
+    with open("./population/week_{}/span.txt".format(weeks), "r") as file:
+        lines = file.readlines()
+        result = [int(line.strip()) for line in lines]
+    rate = np.array(result)
+    rate =  rate.sum()/ rate
+    rate = rate / rate.sum()
+    choice = sorted(np.random.choice(len(result),size=10,p=rate).tolist())
+    fitness_value = [result[_] for _ in choice]
+    return choice, fitness_value

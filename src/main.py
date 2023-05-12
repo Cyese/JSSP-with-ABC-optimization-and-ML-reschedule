@@ -1,7 +1,5 @@
-from schedule import *
-
-path = r"D:/Project/SisThesis/"
-data = pd.read_excel(path+"data.xlsx", sheet_name=2)
-print("Hello")
+from ultilities import *
 
 
+test = [0, 1, 2, 3, 4, 5]
+print(test[-1])

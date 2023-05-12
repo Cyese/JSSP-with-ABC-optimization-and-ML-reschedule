@@ -1,7 +1,7 @@
 from ultilities import *
 
 weeks = 0
-path = 0
+path = 99
 result = []
 with open("D:/Project/SisThesis/population/week_{}/path_{}.txt".format(weeks, path), "r") as file:
     lines = file.readlines()
@@ -60,7 +60,7 @@ y_label = [f"Machine {_//2 + 1}" if _ % 2 == 1 else "" for _ in range(8)]
 ax.set_yticks(y_tick)
 plot.yticks(rotation=90)
 ax.set_yticklabels(y_label)
-ax.set_xticks([_ for _ in range(0, 90, 5)])
+ax.set_xticks([_ for _ in range(0, 90, 5)])  # Need fixing
 ax.set_xlim(0, 90)
 ax.set_xlabel('Time')
 ax.grid(True)
