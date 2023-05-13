@@ -93,7 +93,7 @@ def compress(arr: list[list[int]]) -> list:
 #             result.append(index)
 #     return result
 
-## OpenAI code, quite useful
+## OpenAI code, quite useful 
 def get_sequences(lst: list[int]):
     # Initialize variables to track the current sequence
     start_index = 0
@@ -130,3 +130,23 @@ def get_initial_fitness(weeks:int) -> tuple[list[int], list[int]]:
     choice = sorted(np.random.choice(len(result),size=10,p=rate).tolist())
     fitness_value = [result[_] for _ in choice]
     return choice, fitness_value
+
+
+def node_encode(arr : list[int]) -> list[tuple[int,int]]:
+    operating_string = []    
+    start_index = 0
+    ref = arr[0]
+    for i in range(1,len(arr)):
+        if arr[i] != ref :
+            operating_string.append((ref,i- start_index))
+            start_index = i
+            ref = arr[i]
+    operating_string.append((ref,len(arr)- start_index))
+    return operating_string
+
+
+def node_decode(arr: list[tuple]) -> list[int]:
+    result = []
+    for item in arr:
+      result.extend([item[0] for _ in range(item[1])])
+    return result

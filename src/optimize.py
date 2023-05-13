@@ -1,4 +1,4 @@
-from ultilities import * 
+from utilities import *
 
 """Parameter:
     population = 400
@@ -27,27 +27,51 @@ class Bee:
         return self.solution
 
     def interchange(self):
-        # block_a= sorted(np.random.choice(range(len(self.solution[0])), size=2, replace=False).tolist())
-        # block_b= sorted(np.random.choice(range(len(self.solution[1])), size=2, replace =False).tolist())
+        # block_a= sorted(np.random.choice(range(len(self.solution[0])), size=2).tolist())
+        # block_b= sorted(np.random.choice(range(len(self.solution[1])), size=2).tolist())
         # new_upper = [self.solution[0][_] if a <= block_a[0] or a > block_a[2] for _ in range(len(sel.solution[0]))]
+        series_1 = node_encode(self.solution[0])
+        series_2 = node_encode(self.solution[1])
         inter_type = np.random.random()
         if inter_type >= 0.5:
             # Exchange in between
-            pass
+            x = np.random.choice(range(len(series_1)))
+            y = np.random.choice(range(len(series_2)))
+            series_1[x], series_2[y] = series_2[y],series_1[x]
         else:
             # Extend one with part of other diff
-            pass    
-        
-        pass
+            l1, l2 = sum([_[1] for _ in series_1]), sum(_[1] for _ in series_2) 
+            if l1 > l2:
+                snd ,rcv = series_1, series_2
 
+            else:
+                rcv ,snd = series_1, series_2
+            split  = int(np.random.randint(range(snd[-1][1])))
+            end_node= snd.pop()
+            rcv.append((end_node[0], split))
+            snd.append((end_node[0], end_node[1]- split))
+
+        self.solution[0] = node_decode(series_1)
+        self.solution[1] = node_decode(series_2)
+        return
 
     def inverse(self):
-        # Get a piece of a random set
-        # Inverse that and re-insert
-        pass
+        """Get a piece of a random set of node \n
+        Inverse that and re-insert
+        """
+        line = np.random.randint(0,2)
+        series = node_encode(self.solution[line])
+        start_index = np.random.choice(range(len(series)-1))  # Ensure that there will always be 2 node if possible
+        end_index = np.random.choice(range(start_index+2, len(series)+1))
+        hold = series[start_index: end_index]
+        hold.reverse()
+        series[start_index: end_index] = hold
+        return
 
     def shift(self):
-        # Choose a sequence of a same job if available the shift it together
+        """Choose a sequence of a same job if available the shift it together \n
+        
+        """
         pass
 
 
