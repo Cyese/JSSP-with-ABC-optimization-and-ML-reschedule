@@ -4,3 +4,4 @@ related_paper/*
 __pycache__
 .idea
 .vscode
+src/tempcode.py
