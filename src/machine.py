@@ -106,6 +106,10 @@ class MachinePhase2:
         if self.config == -1:
             self.config = job
             self.state = State[2]
+        elif job == -1:
+            self.config = job
+            self.state = State[1]
+            self.config_time = 3
         elif self.config != job:
             self.config_time = Phase_2_Reconfig[self.config][job]
             self.config = job
