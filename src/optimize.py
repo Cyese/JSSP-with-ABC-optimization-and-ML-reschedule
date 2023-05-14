@@ -7,8 +7,8 @@
     neighboor_size = 10
     q1 = 0.7
 """
-from utilities import *
-from schedule import PhaseBaseSchedule
+# from utilities import *
+from populate import *
 
 class Bee:
     def __init__(self, arr: list[list[int]]) -> None:
@@ -80,22 +80,66 @@ class Bee:
         mod_rate = [4 if _[0] == seq[0] else 1 for _ in series]  # typical off-banner rate_up
         mod_rate.append(1)
         mod_rate = np.array(mod_rate)
-        series.insert(np.random.choice(range(len(series)), p= mod_rate), seq)
+        mod_rate = mod_rate / mod_rate.sum()
+        series.insert(np.random.choice(range(len(series)+1), p= mod_rate), seq)
         self.solution[line] = node_decode(series)
         return
 
 
 class Scout:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, weeks: int, path: int, fitness: int) -> None:
+        self.solution = ORead(weeks,path)
+        self.fitness = fitness
     pass
+
+    def get(self):
+        return self.solution, self.fitness
+    
+    def set(self, solution, fitness):
+        self. solution = solution
+        self.fitness = fitness
+
 
 class BeeColony:
     def __init__(self, weeks: int) -> None:
+        populated(weeks)
         self.population = 400
         self.best_site_No = 10
-        self.number_of_elite_site = 6
+        self.elite_site_No = 6
         self.recruited_for_best = 10
-        self.recruitedfor_elite = 10
+        self.recruited_for_elite = 10
         self.neighboor_size = 10
-        self.path, self.fitness = get_initial_fitness(weeks)
+        self.path, self.fitness = get_initial_fitness(weeks, 10)
+        self.para = weeks
+        self.abandon = []
+        self.ScoutBee : list[Scout] = []
+
+    def neighbour_optimize(self):
+        best_site = self.fitness.index(min(self.fitness))
+        scout = Scout(self.para, self.path.pop(best_site), self.fitness.pop(best_site))
+        for _ in range(self.neighboor_size):
+            cur_sol, cur_fit = scout.get()
+            new_Bee = Bee(cur_sol)
+            new_sol, new_fit  = new_Bee.search()
+            if new_fit < cur_fit:
+                scout.set(compress(new_sol), new_fit)
+        return scout
+
+    def global_search(self):
+        # To improve: try to implement Routle Wheel / Crossover
+        best = self.ScoutBee[0]
+        for scout in self.ScoutBee:
+            if scout.fitness < best.fitness:
+                best = scout
+        return best
+    
+    def optimize(self):
+        for x in range(10):
+            self.ScoutBee.append(self.neighbour_optimize())
+        best = self.global_search()
+        solution, cycle = PhaseBaseSchedule(best.solution).run()
+        with open(r'./output/week_{}.txt'.format(self.para)) as file:
+            for x in solution:
+                file.writelines(' '.join(str(_) for _ in x) + '\n')
+        return cycle
+                

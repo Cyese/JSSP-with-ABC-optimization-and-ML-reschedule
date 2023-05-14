@@ -67,6 +67,7 @@ def ORead(weeks: int, path: int) -> list[list[int]]:
         lines = file.readlines()
     for line in lines:
         result.append([int(_) for _ in line.split() if _ != '7' and _ != '8'])
+    result = result[0:2]
     # print(temp) 
     # with open("./population/week_{}/span.txt".format(weeks), "r") as file:
     #     for i,lines in enumerate(file):
@@ -81,8 +82,8 @@ def compress(arr: list[list[int]]) -> list:
     for x in range(2):
         compressed = [arr[x][index] for index in range(len(arr[x])) if index % 2 == 0]
         result.append(compressed)
-    result.append(arr[2])
-    result.append(arr[3])
+    # result.append(arr[2])
+    # result.append(arr[3])
     return result
 
 
@@ -118,7 +119,7 @@ def get_sequences(lst: list[int]):
     yield lst[start_index], start_index, current_length
 
 
-def get_initial_fitness(weeks:int) -> tuple[list[int], list[int]]:
+def get_initial_fitness(weeks:int, quantity: int) -> tuple[list[int], list[int]]:
     result :list[int]
     fitness_value : list[int]
     with open("./population/week_{}/span.txt".format(weeks), "r") as file:
@@ -127,7 +128,7 @@ def get_initial_fitness(weeks:int) -> tuple[list[int], list[int]]:
     rate = np.array(result)
     rate =  rate.sum()/ rate
     rate = rate / rate.sum()
-    choice = sorted(np.random.choice(len(result),size=10,p=rate).tolist())
+    choice = sorted(np.random.choice(len(result),size=quantity,p=rate).tolist())
     fitness_value = [result[_] for _ in choice]
     return choice, fitness_value
 

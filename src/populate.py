@@ -44,4 +44,4 @@ def populated(weeks: int):
     # print(Total)
 
 
-# populated(0)
+populated(0)
