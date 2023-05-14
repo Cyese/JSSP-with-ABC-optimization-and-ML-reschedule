@@ -1,5 +1,3 @@
-from utilities import *
-
 """Parameter:
     population = 400
     best_site_No = 10
@@ -8,15 +6,18 @@ from utilities import *
     recruitedfor_elite = 10
     neighboor_size = 10
     q1 = 0.7
-
 """
-
+from utilities import *
+from schedule import PhaseBaseSchedule
 
 class Bee:
     def __init__(self, arr: list[list[int]]) -> None:
+        """ Expect arr to have 2 list of int each represent phase1 
+            Scout class will have to use schedule module to re-phrase the schedule in to usable state
+        """
         self.solution = arr.copy()
 
-    def search(self) -> list:
+    def search(self) -> tuple[list,int]:
         q2 = np.random.random()
         if q2 <= 0.3:
             self.interchange()
@@ -24,16 +25,18 @@ class Bee:
             self.shift()
         else:
             self.inverse()
-        return self.solution
+        scheduler = PhaseBaseSchedule(self.solution)
+        return scheduler.run()
 
     def interchange(self):
-        # block_a= sorted(np.random.choice(range(len(self.solution[0])), size=2).tolist())
-        # block_b= sorted(np.random.choice(range(len(self.solution[1])), size=2).tolist())
-        # new_upper = [self.solution[0][_] if a <= block_a[0] or a > block_a[2] for _ in range(len(sel.solution[0]))]
+        """Has 2 random behaviour and randomly run one of the 2 ():
+            @ (1): exchange 2 random part in side the operation string
+            @ (2): slice the longer end into smaller part
+        """
         series_1 = node_encode(self.solution[0])
         series_2 = node_encode(self.solution[1])
-        inter_type = np.random.random()
-        if inter_type >= 0.5:
+        inter_type = np.random.randint(0,2)
+        if inter_type >= 1:
             # Exchange in between
             x = np.random.choice(range(len(series_1)))
             y = np.random.choice(range(len(series_2)))
@@ -43,11 +46,10 @@ class Bee:
             l1, l2 = sum([_[1] for _ in series_1]), sum(_[1] for _ in series_2) 
             if l1 > l2:
                 snd ,rcv = series_1, series_2
-
             else:
                 rcv ,snd = series_1, series_2
-            split  = int(np.random.randint(range(snd[-1][1])))
             end_node= snd.pop()
+            split  = int(np.random.randint(range(end_node[1])))
             rcv.append((end_node[0], split))
             snd.append((end_node[0], end_node[1]- split))
 
@@ -66,13 +68,21 @@ class Bee:
         hold = series[start_index: end_index]
         hold.reverse()
         series[start_index: end_index] = hold
+        self.solution[line] = node_decode(series)
         return
 
     def shift(self):
-        """Choose a sequence of a same job if available the shift it together \n
-        
+        """Choose a sequence and randomly move it to other place in the sequence
         """
-        pass
+        line = np.random.randint(0,2)
+        series = node_encode(self.solution[line])
+        seq = series.pop(np.random.choice(range(len(series))))
+        mod_rate = [4 if _[0] == seq[0] else 1 for _ in series]  # typical off-banner rate_up
+        mod_rate.append(1)
+        mod_rate = np.array(mod_rate)
+        series.insert(np.random.choice(range(len(series)), p= mod_rate), seq)
+        self.solution[line] = node_decode(series)
+        return
 
 
 class Scout:

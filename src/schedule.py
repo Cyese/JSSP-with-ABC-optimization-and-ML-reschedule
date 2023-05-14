@@ -151,3 +151,117 @@ class Schedule:
     def add(self, task: list[int]):
         for i in range(6):
             self.Table[0][i] += task[i]
+
+
+class PhaseBaseSchedule:
+    def __init__(self, phase1: list[list[int]]) -> None:
+        self.MachineLine: list[MachinePhase1 | MachinePhase2]
+        self.MachineLine = [
+            MachinePhase1(2, 2),
+            MachinePhase1(2, 2),
+            MachinePhase2(1),
+            MachinePhase2(1)
+        ]
+        self.Dispatch = [True, True]
+        self.Operate = [[-1, 8] for _ in range(4)]
+        self.PenaltyTime = [4, 3, 8, 16]
+        self.Phase1Schedule = phase1
+        self.Task = [False for _ in range(6)]
+        # self.TablePhase2 = [int(0) for _ in range(6)]
+        self.Queue: list[list[int]] = [[], []]
+
+    def dispatch_P1(self, machine_id: int) -> None:
+        if len(self.Phase1Schedule[machine_id]) == 0:
+            self.MachineLine[machine_id].assign(-1)
+        else:
+            self.MachineLine[machine_id].assign(self.Phase1Schedule[machine_id].pop(0))
+        return
+
+    def dispatch_P2(self, machine_id: int) -> None:
+        if len(self.Queue[machine_id % 2]) == 0:
+            self.MachineLine[machine_id].assign(-1)
+        else:
+            self.MachineLine[machine_id].assign(self.Queue[machine_id % 2].pop(0))
+        return
+
+    def arrange_P1(self, machine_id: int) -> None:
+        if self.MachineLine[machine_id].config == -1 or self.Dispatch[machine_id]:
+            self.dispatch_P1(machine_id)
+            self.Dispatch[machine_id] = False
+        # output = self.MachineLine[machine_id].process()
+        output = self.MachineLine[machine_id].process()
+        if output != 0:
+            self.Dispatch[machine_id] = True
+            # What's below here is black magic, don't question/ask about it, it just works (maybe)
+            # (and no im not racist the black, is just a Yugioh ref)
+            cur = self.MachineLine[machine_id].config
+            if cur == -1:
+                pass
+            else:
+                p1, p2 = 0, 0
+                if len(self.Queue[0]) < len(self.Queue[1]):
+                    p1 += 1
+                else:
+                    p2 += 1
+                if cur == self.MachineLine[2].config:
+                    p1 += 3
+                elif cur // 3 == self.MachineLine[2].config // 3:
+                    p1 += 1
+
+                if cur == self.MachineLine[3].config:
+                    p2 += 3
+                elif cur // 3 == self.MachineLine[3].config // 3:
+                    p2 += 1
+                if p1 > p2:
+                    self.Queue[0].extend([cur, cur])
+                elif p2 > p1:
+                    self.Queue[1].extend([cur, cur])
+                else:
+                    # If none have decided, let fate do the deed
+                    self.Queue[np.random.choice(range(2))].extend([cur, cur])
+            # End of black magic
+            # self.dispatch_P1(machine_id)
+        else:
+            pass
+        return
+
+    def arrange_P2(self, machine_id: int):
+        output = self.MachineLine[machine_id].process()
+        if output != 0 or self.MachineLine[machine_id].config == -1:
+            if len(self.Queue[machine_id % 2]) == 0:
+                # self.MachineLine[machine_id].assign(-1)
+                pass
+            else:
+                self.MachineLine[machine_id].assign(self.Queue[machine_id % 2].pop(0))
+        return
+
+    def is_Done(self) -> bool:
+        return len(self.Queue[0]) == 0 and len(self.Queue[1]) == 0 and len(self.Phase1Schedule[0]) == 0 and len(
+            self.Phase1Schedule[1]) == 0
+
+    def arrange(self):
+        for machine_id in [3, 2, 1, 0]:  # range(4):
+            if self.PenaltyTime[machine_id] > 0:
+                self.PenaltyTime[machine_id] -= 1
+            elif machine_id // 2 == 0:
+                self.arrange_P1(machine_id)
+            else:
+                self.arrange_P2(machine_id)
+        return self.is_Done()
+
+    def run(self):
+        result = [[] for _ in range(4)]
+        cycle = 0
+        while True:
+            Is_done = self.arrange()
+            for i in range(4):
+                result[i].append(self.MachineLine[i].get_config())
+            if Is_done:
+                break
+            else:
+                cycle += 1
+        for y in range(4):
+            for x in range(cycle + 1):
+                if result[y][x] == -1:
+                    result[y][x] = 8
+        return result, cycle
