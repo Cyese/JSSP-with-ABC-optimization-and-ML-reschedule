@@ -1,6 +1,7 @@
 older_version/*
 population/*
 related_paper/*
+output/*
 __pycache__
 .idea
 .vscode

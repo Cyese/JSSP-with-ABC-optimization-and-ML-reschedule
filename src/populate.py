@@ -19,7 +19,7 @@ def populated(weeks: int):
     make_span = [0 for _ in range(100)]
     for index in range(3, 6):
         Total[index] //= 3
-    Batch = [int(np.ceil(_/9000)) for _ in Total]
+    # Batch = [int(np.ceil(_/9000)) for _ in Total]
     for route in range(100):
         schedule = Schedule(Total)
         result, cycle, output = schedule.run()
@@ -29,12 +29,6 @@ def populated(weeks: int):
         # file.write(str(cycle))
         make_span[route] = cycle
         output = [int(np.ceil(_/9000)) for _ in output]
-        Diff = False
-        for i in range(len(Batch)):
-            Diff = Diff or output[i] != Batch[i]
-        if Diff:
-            print("Different at path No.{}".format(route))
-    print(Batch)
     
     with open(write_Path + "span.txt", "w+") as fitness_file:
         fitness_file.writelines(str(ele) + '\n' for ele in make_span)
@@ -44,4 +38,4 @@ def populated(weeks: int):
     # print(Total)
 
 
-populated(0)
+# populated(0)

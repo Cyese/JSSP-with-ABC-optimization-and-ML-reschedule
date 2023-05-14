@@ -63,7 +63,7 @@ class Schedule:
         if (self.Operate[machine_id][0] == -1 and sum(self.Table[1]) != 0) \
                 or self.Table[1][self.Operate[machine_id][0]] <= 0:
             # No more to produce
-            choice = get_max(self.Table, self.TaskByPhase2)
+            choice = get_max(self.Table[1], self.TaskByPhase2)
             current = self.Operate[machine_id][0]
             if current != -1:
                 self.TaskByPhase2[current] = False
@@ -167,22 +167,37 @@ class PhaseBaseSchedule:
         self.PenaltyTime = [4, 3, 8, 16]
         self.Phase1Schedule = phase1
         self.Task = [False for _ in range(6)]
+        self.Table = [0 for _ in range(6)]
         # self.TablePhase2 = [int(0) for _ in range(6)]
-        self.Queue: list[list[int]] = [[], []]
+        # self.Queue: list[list[int]] = [[], []]
 
     def dispatch_P1(self, machine_id: int) -> None:
         if len(self.Phase1Schedule[machine_id]) == 0:
             self.MachineLine[machine_id].assign(-1)
         else:
-            self.MachineLine[machine_id].assign(self.Phase1Schedule[machine_id].pop(0))
+            choice = self.Phase1Schedule[machine_id].pop(0)
+            self.MachineLine[machine_id].assign(choice)
+            self.Operate[machine_id][0] = choice
+            self.Operate[machine_id][1] = 0
         return
 
     def dispatch_P2(self, machine_id: int) -> None:
-        if len(self.Queue[machine_id % 2]) == 0:
-            self.MachineLine[machine_id].assign(-1)
-        else:
-            self.MachineLine[machine_id].assign(self.Queue[machine_id % 2].pop(0))
-        return
+        if (self.Operate[machine_id][0] == -1 and sum(self.Table) != 0) \
+                or self.Table[self.Operate[machine_id][0]] <= 0:
+            # No more to produce
+            choice = get_max(self.Table, self.Task)
+            current = self.Operate[machine_id][0]
+            if current != -1:
+                self.Task[current] = False
+            if choice == -1:
+                self.Operate[machine_id][0] = choice
+                self.MachineLine[machine_id].assign(choice)
+                return
+            # current = self.Operate[machine_id][0]
+            self.MachineLine[machine_id].assign(choice)
+            self.Operate[machine_id][0] = choice
+            self.Operate[machine_id][1] = 0
+            self.Task[choice] = True
 
     def arrange_P1(self, machine_id: int) -> None:
         if self.MachineLine[machine_id].config == -1 or self.Dispatch[machine_id]:
@@ -198,27 +213,7 @@ class PhaseBaseSchedule:
             if cur == -1:
                 pass
             else:
-                p1, p2 = 0, 0
-                if len(self.Queue[0]) < len(self.Queue[1]):
-                    p1 += 1
-                else:
-                    p2 += 1
-                if cur == self.MachineLine[2].config:
-                    p1 += 3
-                elif cur // 3 == self.MachineLine[2].config // 3:
-                    p1 += 1
-
-                if cur == self.MachineLine[3].config:
-                    p2 += 3
-                elif cur // 3 == self.MachineLine[3].config // 3:
-                    p2 += 1
-                if p1 > p2:
-                    self.Queue[0].extend([cur, cur])
-                elif p2 > p1:
-                    self.Queue[1].extend([cur, cur])
-                else:
-                    # If none have decided, let fate do the deed
-                    self.Queue[np.random.choice(range(2))].extend([cur, cur])
+                self.Table[cur] += output
             # End of black magic
             # self.dispatch_P1(machine_id)
         else:
@@ -226,18 +221,19 @@ class PhaseBaseSchedule:
         return
 
     def arrange_P2(self, machine_id: int):
-        output = self.MachineLine[machine_id].process()
-        if output != 0 or self.MachineLine[machine_id].config == -1:
-            if len(self.Queue[machine_id % 2]) == 0:
-                # self.MachineLine[machine_id].assign(-1)
-                pass
-            else:
-                self.MachineLine[machine_id].assign(self.Queue[machine_id % 2].pop(0))
-        return
+        current_task = self.MachineLine[machine_id].config
+        if current_task == -1:
+            self.dispatch_P2(machine_id)
+            self.MachineLine[machine_id].process()
+        elif self.Table[current_task] <= 0:
+            self.dispatch_P2(machine_id)
+        else:
+            output = self.MachineLine[machine_id].process()
+            # self.Table[2][current_task] += output
+            self.Table[current_task] -= output
 
     def is_Done(self) -> bool:
-        return len(self.Queue[0]) == 0 and len(self.Queue[1]) == 0 and len(self.Phase1Schedule[0]) == 0 and len(
-            self.Phase1Schedule[1]) == 0
+        return sum(self.Table) == 0 and len(self.Phase1Schedule[0]) == 0 and len(self.Phase1Schedule[1]) == 0
 
     def arrange(self):
         for machine_id in [3, 2, 1, 0]:  # range(4):

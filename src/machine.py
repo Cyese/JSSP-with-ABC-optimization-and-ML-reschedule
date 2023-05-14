@@ -35,7 +35,7 @@ class MachinePhase1:
         elif self.config_time == 0:  # and self.state == State[1]:
             self.config_time -= 1
             self.state = State[2]
-            self.count = self.time -1
+            self.count = self.time - 1
         elif self.state == State[2]:
             self.count -= 1
             if self.count == 0:
@@ -81,8 +81,6 @@ class MachinePhase2:
 
     def process(self) -> int:
         """Process amount of goods
-            Args: 
-                quantity: quantity to be produce (in L)
             Return
                 amount processed upto its capacity or input (in Units)
         """

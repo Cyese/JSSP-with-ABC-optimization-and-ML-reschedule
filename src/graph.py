@@ -1,7 +1,7 @@
 from utilities import *
 
 
-def draw_chart(weeks: int):
+def draw_chart(weeks: int, limit : int):
     result = []
     with open("./output/week_{}.txt".format(weeks), "r") as file:
         lines = file.readlines()
@@ -61,7 +61,8 @@ def draw_chart(weeks: int):
     plot.yticks(rotation=90)
     ax.set_yticklabels(y_label)
     ax.set_xticks([_ for _ in range(0, 90, 5)])  # Need fixing
-    ax.set_xlim(0, 90)
+    limit = (limit//5 + 1)*5
+    ax.set_xlim(0, limit)
     ax.set_xlabel('Time')
     ax.grid(True)
 
