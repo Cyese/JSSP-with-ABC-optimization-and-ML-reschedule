@@ -61,7 +61,7 @@ def draw_chart(weeks: int, limit : int):
     plot.yticks(rotation=90)
     ax.set_yticklabels(y_label)
     ax.set_xticks([_ for _ in range(0, 90, 5)])  # Need fixing
-    limit = (limit//5 + 1)*5
+    limit = (int(limit/5) + 2)*5
     ax.set_xlim(0, limit)
     ax.set_xlabel('Time')
     ax.grid(True)

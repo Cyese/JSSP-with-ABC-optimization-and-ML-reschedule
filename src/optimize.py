@@ -114,7 +114,7 @@ class BeeColony:
         self.elite_site_No = 6
         self.recruited_for_best = 10
         self.recruited_for_elite = 10
-        self.neighbour_size = 10
+        self.neighbour_size = 40
         self.path, self.fitness = get_initial_fitness(weeks, 10)
         self.para = weeks
         self.abandon = []
