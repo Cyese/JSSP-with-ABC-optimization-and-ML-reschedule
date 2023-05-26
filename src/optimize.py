@@ -119,8 +119,8 @@ class BeeColony:
         self.para = weeks
         self.abandon = []
         self.ScoutBee: list[Scout] = []
-        print(self.path)
-        print(self.fitness)
+        # print(self.path)
+        # print(self.fitness)
 
     def neighbour_optimize(self):
         best_site = self.fitness.index(min(self.fitness))

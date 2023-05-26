@@ -9,5 +9,5 @@ def time_variant(weeks : int):
     og_sched = get_output_sched(weeks)
 
 
-og_sched = get_output_sched(0)
-print(og_sched)
+# og_sched = get_output_sched(0)
+# print(og_sched)

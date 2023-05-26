@@ -1,7 +1,13 @@
 from utilities import *
 
+def clean(weeks: int):
+    dir = f"./sched/week_{weeks}"
+    images_list = glob.glob(dir + "/*.png")
+    for image in images_list:
+        os.remove(image)
 
 def draw_chart(weeks: int, limit : int):
+    clean(weeks)
     result = []
     with open("./sched/week_{}/raw.txt".format(weeks), "r") as file:
         lines = file.readlines()
@@ -13,7 +19,6 @@ def draw_chart(weeks: int, limit : int):
         width : [] task[x] duration
         left: start time
     """
-
     Task = [[[] for _ in range(9)] for _ in range(4)]
     Color_pallet = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', '', 'grey', 'white']
     for x in range(4):
@@ -51,19 +56,19 @@ def draw_chart(weeks: int, limit : int):
     ax.set_xticks([_ for _ in range(0, limit, 5)])  # Need fixing
     ax.set_xlim(0, limit)
     ax.set_xlabel('Time')
+    ax.set_title("GBA")
     ax.grid(True)
-
-    plot.savefig(r'./sched/week_{}/result'.format(weeks),dpi ="figure")
-
+    plot.savefig(r'./sched/week_{}/result'.format(weeks))
+    plot.close()
 
 def draw_sample(weeks: int):
     result, limit = [], None
     _path = np.random.randint(0,100)
-    with open("./population/week_{}/span.txt".format(weeks), "r") as file:
+    with open("./sample/week_{}/span.txt".format(weeks), "r") as file:
         lines = file.readlines()
         sth = [int(line.strip()) for line in lines] 
         limit = sth[_path]
-    with open("./population/week_{}/path_{}.txt".format(weeks, _path ), "r") as file:
+    with open("./sample/week_{}/path_{}.txt".format(weeks, _path ), "r") as file:
         lines = file.readlines()
     for line in lines:
         result.append([int(_) for _ in line.split()])
@@ -124,6 +129,19 @@ def draw_sample(weeks: int):
     ax.set_xlim(0, limit)
     ax.set_xlabel('Time')
     ax.grid(True)
-    
-    plot.savefig(r'./sched/week_{}/sample_{}'.format(weeks, _path),dpi ="figure")
+    ax.set_title("GA")
+    plot.savefig(r'./sched/week_{}/sample_{}'.format(weeks, _path))
+    plot.close()
 
+def display(weeks: int): 
+    dir = f"./sched/week_{weeks}"
+    fig, axes = plot.subplots(nrows=1, ncols=2)
+    images_list = glob.glob(dir + "/*.png")
+    for i, image in enumerate(images_list):
+        _image = Image.open(image)
+        axes[i].imshow(_image)
+        axes[i].axis('off')
+        _image.close()
+    plot.tight_layout()
+    plot.show()
+    return

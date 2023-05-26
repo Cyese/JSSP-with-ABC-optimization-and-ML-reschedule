@@ -26,7 +26,7 @@ class Schedule:
         self.limit = Total_time
         # self.arrange_task()
         # Operate[x -> Line][y -> Phase][z : 0 | 1 -> task | cycle_time]
-        self.Operate = [[-1, 6] for _ in range(4)]
+        self.Operate = [[-1, 4] for _ in range(4)]
         self.PenaltyTime = [4, 3, 8, 16]
         return
 
@@ -81,7 +81,7 @@ class Schedule:
         if self.Operate[machine_id][0] == -1 and sum(self.Table[0]) == 0:
             self.MachineLine[machine_id].assign(-1)
         current_task = self.MachineLine[machine_id].config
-        if self.Operate[machine_id][1] == 6 or self.Table[0][current_task] <= 0:
+        if self.Operate[machine_id][1] == 4 or self.Table[0][current_task] <= 0:
             self.dispatch_P1(machine_id, machine_id)
         current_task = self.MachineLine[machine_id].config
         if current_task == -1:
