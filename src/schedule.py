@@ -26,7 +26,7 @@ class Schedule:
         self.limit = Total_time
         # self.arrange_task()
         # Operate[x -> Line][y -> Phase][z : 0 | 1 -> task | cycle_time]
-        self.Operate = [[-1, 8] for _ in range(4)]
+        self.Operate = [[-1, 6] for _ in range(4)]
         self.PenaltyTime = [4, 3, 8, 16]
         return
 
@@ -81,7 +81,7 @@ class Schedule:
         if self.Operate[machine_id][0] == -1 and sum(self.Table[0]) == 0:
             self.MachineLine[machine_id].assign(-1)
         current_task = self.MachineLine[machine_id].config
-        if self.Operate[machine_id][1] == 8 or self.Table[0][current_task] <= 0:
+        if self.Operate[machine_id][1] == 6 or self.Table[0][current_task] <= 0:
             self.dispatch_P1(machine_id, machine_id)
         current_task = self.MachineLine[machine_id].config
         if current_task == -1:
@@ -168,6 +168,12 @@ class PhaseBaseSchedule:
         self.Phase1Schedule = phase1
         self.Task = [False for _ in range(6)]
         self.Table = [0 for _ in range(6)]
+        temp = [True for _ in range(6)]
+        for x in phase1:
+            for y in x:
+                temp[y] = False
+        for x in range(len(temp)):
+            if temp[x]: print(f"Sth wrong with this: Mising {x}")
         # self.TablePhase2 = [int(0) for _ in range(6)]
         # self.Queue: list[list[int]] = [[], []]
 
@@ -236,7 +242,7 @@ class PhaseBaseSchedule:
         return sum(self.Table) == 0 and len(self.Phase1Schedule[0]) == 0 and len(self.Phase1Schedule[1]) == 0
 
     def arrange(self):
-        for machine_id in [3, 2, 1, 0]:  # range(4):
+        for machine_id in [0, 1, 2, 3]:  # range(4):
             if self.PenaltyTime[machine_id] > 0:
                 self.PenaltyTime[machine_id] -= 1
             elif machine_id // 2 == 0:
@@ -257,7 +263,7 @@ class PhaseBaseSchedule:
             else:
                 cycle += 1
         for y in range(4):
-            for x in range(cycle + 1):
+            for x in range(cycle+1):
                 if result[y][x] == -1:
                     result[y][x] = 8
         return result, cycle

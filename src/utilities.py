@@ -5,7 +5,17 @@ import os
 from machine import *
 
 path = r"./"
-write_out_path = path + "population/"
+write_out_path = path + "sample/"
+
+def make_dir():
+    path_list = [
+        r"./sample/",
+        r"./sched"
+        # r"./span"
+    ]
+    for dir in path_list:
+        if not os.path.exists(dir):
+            os.mkdir(dir)
 
 
 def check(arr: list):
@@ -63,7 +73,7 @@ def unassigned(arr: list[list[int]]) -> bool:
 def ORead(weeks: int, _path: int) -> list[list[int]]:
     result = []
     # value : int = 0
-    with open(r"./population/week_{}/path_{}.txt".format(weeks, _path), "r") as file:
+    with open(r"./sample/week_{}/path_{}.txt".format(weeks, _path), "r") as file:
         lines = file.readlines()
     for line in lines:
         result.append([int(_) for _ in line.split() if _ != '7' and _ != '8'])
@@ -127,13 +137,13 @@ def get_sequences(lst: list[int]):
 def get_initial_fitness(weeks: int, quantity: int) -> tuple[list[int], list[int]]:
     result: list[int]
     fitness_value: list[int]
-    with open("./population/week_{}/span.txt".format(weeks), "r") as file:
+    with open("./sample/week_{}/span.txt".format(weeks), "r") as file:
         lines = file.readlines()
         result = [int(line.strip()) for line in lines]
-    rate = np.array(result)
-    rate = rate.sum() / rate
-    rate = rate / rate.sum()
-    choice = sorted(np.random.choice(len(result), size=quantity, p=rate).tolist())
+    # rate = np.array(result)
+    # rate = rate.sum() / rate
+    # rate = rate / rate.sum()
+    choice = sorted(np.random.choice(len(result), size=quantity).tolist()) # , p=rate
     fitness_value = [result[_] for _ in choice]
     return choice, fitness_value
 
@@ -155,4 +165,15 @@ def node_decode(arr: list[tuple]) -> list[int]:
     result = []
     for item in arr:
         result.extend([item[0] for _ in range(item[1])])
+    return result
+
+
+def get_output_sched(weeks: int) -> list[list[int]]:
+    result : list[list[int]]
+    result = [[] for _ in range(4)]
+    with open("./sched/week_{}.txt".format(weeks), "r") as file:
+        lines = file.readlines()
+        for x,line in enumerate(lines):
+            # print(f"Test {x}: {line}")
+            result[x].extend([int(_)  for _ in line.split()])
     return result

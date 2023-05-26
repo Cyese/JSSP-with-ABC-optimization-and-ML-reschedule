@@ -19,13 +19,14 @@ class Bee:
         self.solution = [[x for x in y] for y in arr]
 
     def search(self) -> tuple[list, int]:
-        q2 = np.random.random()
-        if q2 <= 0.3:
-            self.interchange()
-        elif 0.3 < q2 <= 0.7:
-            self.shift()
-        else:
-            self.inverse()
+        # for _ in range(10):
+        # q2 = np.random.random()
+        # if q2 <= 0.3:
+        # self.interchange()
+        # elif 0.3 < q2 <= 0.7:
+        # self.shift()
+        # else:
+        self.inverse()
         scheduler = PhaseBaseSchedule(self.solution)
         return scheduler.run()
 
@@ -64,10 +65,9 @@ class Bee:
         """
         line = np.random.randint(0, 2)
         series = node_encode(self.solution[line])
-        if len(series) == 1:
+        if len(series) <= 1:
             return
-        start_index = np.random.choice(range(len(series) - 1))  # Ensure that there will always be 2 node if possible
-        end_index = np.random.choice(range(start_index + 2, len(series) + 1))
+        start_index, end_index = sorted(np.random.choice(range(len(series)),size=2,replace=False))
         hold = series[start_index: end_index]
         hold.reverse()
         series[start_index: end_index] = hold
@@ -119,6 +119,8 @@ class BeeColony:
         self.para = weeks
         self.abandon = []
         self.ScoutBee: list[Scout] = []
+        print(self.path)
+        print(self.fitness)
 
     def neighbour_optimize(self):
         best_site = self.fitness.index(min(self.fitness))
@@ -139,12 +141,16 @@ class BeeColony:
                 best = scout
         return best
 
-    def optimize(self):
+    def optimize(self) -> int:
         for x in range(10):
             self.ScoutBee.append(self.neighbour_optimize())
         best = self.global_search()
         solution, cycle = PhaseBaseSchedule(best.solution).run()
-        with open(r'./output/week_{}.txt'.format(self.para), "w+") as file:
+        if not os.path.exists(f"./sched/week_{self.para}"):
+            os.mkdir(f"./sched/week_{self.para}")
+        with open(r'./sched/week_{}/raw.txt'.format(self.para), "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
+        with open(r'./sched/week_{}/span.txt'.format(self.para),"w+") as file:
+            file.write(str(cycle))
         return cycle

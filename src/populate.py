@@ -2,11 +2,11 @@ from schedule import *
 
 
 def populated(weeks: int):
-    """Create and population base on the data in week and weeks+1 
+    """Create and sample base on the data in week and weeks+1 
         Args:
             weeks (int): number represent a weeks, in range [0,311]
         Returns:
-            A collection of text file in .\\population\\week_{weeks}
+            A collection of text file in .\\sample\\week_{weeks}
     """
     write_Path = write_out_path + "week_{}/".format(weeks)
     if not os.path.exists(write_Path):

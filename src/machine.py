@@ -87,10 +87,9 @@ class MachinePhase2:
         if self.state == State[1] and self.config_time > 1:
             self.config_time -= 1
         elif self.config_time == 1:  # and self.state == State[1]:
-            self.config_time -= 1
+            self.config_time =0
             self.state = State[2]
-            # self.count = self.time
-        elif self.state == State[2]:
+        if self.state == State[2]:
             return self.capacity  # * Unit_By_Litter[self.config // 3]  # problem requirement
         return 0
 
