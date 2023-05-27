@@ -14,9 +14,6 @@ class Schedule:
             MachinePhase2(4500),
             MachinePhase2(4500)
         ]
-        # Task for storing all pending task
-        # Table[x -> Phase][y -> Task]
-        # self.Tasks = [task for task in task_list]
         self.TaskByPhase1 = [False for _ in range(6)]  # Mark which task is currently distributed
         self.TaskByPhase2 = [False for _ in range(6)]  # Same from above
         self.Table = [[task for task in task_list],
@@ -24,8 +21,6 @@ class Schedule:
                       [0 for _ in range(6)]
                       ]
         self.limit = Total_time
-        # self.arrange_task()
-        # Operate[x -> Line][y -> Phase][z : 0 | 1 -> task | cycle_time]
         self.Operate = [[-1, 4] for _ in range(4)]
         self.PenaltyTime = [4, 3, 8, 16]
         return
@@ -92,11 +87,6 @@ class Schedule:
         self.Table[1][current_task] += output
         if self.Table[0][current_task] <= 0:
             self.Table[0][current_task] = 0
-            # if line == 0:
-            #     self.TaskByLine1.pop(self.TaskByLine1.index(current_task))
-            # else:
-            #     self.TaskByLine2.pop(self.TaskByLine2.index(current_task))
-            # self.dispatch_P1(machine_id, machine_id)
         return
 
     def arrange_P2(self, machine_id: int) -> None:
@@ -106,6 +96,10 @@ class Schedule:
             self.MachineLine[machine_id].process()
         elif self.Table[1][current_task] <= 0:
             self.dispatch_P2(machine_id)
+            current_task = self.MachineLine[machine_id].config
+            if current_task == -1:
+                return
+            self.MachineLine[machine_id].process()
         else:
             output = self.MachineLine[machine_id].process()
             self.Table[2][current_task] += output
@@ -123,18 +117,12 @@ class Schedule:
                 self.arrange_P1(machine_id)
             else:
                 self.arrange_P2(machine_id)
-        # if unassigned(self.Operate):
-        #     for machine_id in range(4):
-        #         if machine_id // 2 == 0 and self.Operate[machine_id][0] == -1:
-        #             self.arrange_P1(machine_id)
-        #         elif self.Operate[machine_id][0] == -1:
-        #             self.arrange_P2(machine_id)
         return sum(self.Table[0]) == 0 and sum(self.Table[1]) == 0
 
     def run(self) -> tuple[list, int, list]:
         result = [[] for _ in range(4)]
         cycle = 0
-        while cycle <= self.limit:
+        while True:
             Is_done = self.arrange()
             for i in range(4):
                 result[i].append(self.MachineLine[i].get_config())
@@ -169,13 +157,15 @@ class PhaseBaseSchedule:
         self.Task = [False for _ in range(6)]
         self.Table = [0 for _ in range(6)]
         temp = [True for _ in range(6)]
-        # for x in phase1:
-        #     for y in x:
-        #         temp[y] = False
-        # for x in range(len(temp)):
-        #     if temp[x]: print(f"Sth wrong with this: Mising {x}")
-        # self.TablePhase2 = [int(0) for _ in range(6)]
-        # self.Queue: list[list[int]] = [[], []]
+        for x in phase1:
+            for ope in x:
+                temp[ope] &= False
+        for x, item in enumerate(temp):
+            if item:
+                print(f"Missing a key: {x}") 
+
+
+
 
     def dispatch_P1(self, machine_id: int) -> None:
         if len(self.Phase1Schedule[machine_id]) == 0:
@@ -221,7 +211,6 @@ class PhaseBaseSchedule:
             else:
                 self.Table[cur] += output
             # End of black magic
-            # self.dispatch_P1(machine_id)
         else:
             pass
         return
@@ -229,17 +218,21 @@ class PhaseBaseSchedule:
     def arrange_P2(self, machine_id: int):
         current_task = self.MachineLine[machine_id].config
         if current_task == -1:
-            self.dispatch_P2(machine_id)
-            self.MachineLine[machine_id].process()
+            self.dispatch_P2(machine_id) 
         elif self.Table[current_task] <= 0:
             self.dispatch_P2(machine_id)
-        else:
-            output = self.MachineLine[machine_id].process()
-            # self.Table[2][current_task] += output
-            self.Table[current_task] -= output
+        current_task = self.MachineLine[machine_id].config 
+        if current_task ==-1:
+            return
+        output = self.MachineLine[machine_id].process()
+        self.Table[current_task] -= output
 
     def is_Done(self) -> bool:
-        return sum(self.Table) == 0 and len(self.Phase1Schedule[0]) == 0 and len(self.Phase1Schedule[1]) == 0
+        value : bool = True
+        for enum, _ in enumerate(self.Table):
+            value &= _ == 0 and self.Task[enum] == False
+        value &= len(self.Phase1Schedule[0]) == 0 and len(self.Phase1Schedule[1]) == 0
+        return value
 
     def arrange(self):
         for machine_id in [0, 1, 2, 3]:  # range(4):

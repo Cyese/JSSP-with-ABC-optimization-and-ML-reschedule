@@ -84,13 +84,13 @@ class MachinePhase2:
             Return
                 amount processed upto its capacity or input (in Units)
         """
-        if self.state == State[1] and self.config_time > 1:
+        if self.state == State[1] and self.config_time > 0:
             self.config_time -= 1
-        elif self.config_time == 1:  # and self.state == State[1]:
-            self.config_time = 0
+        elif self.config_time == 0:  # and self.state == State[1]:
+            # self.config_time = 0
             self.state = State[2]
         if self.state == State[2]:
-            return self.capacity  # * Unit_By_Litter[self.config // 3]  # problem requirement
+            return self.capacity  
         return 0
 
     def assign(self, job: int) -> None:

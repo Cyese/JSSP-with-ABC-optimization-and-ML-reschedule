@@ -13,8 +13,10 @@ write_out_path = path + "sample/"
 def make_dir():
     path_list = [
         r"./sample/",
-        r"./sched"
-        # r"./span"
+        r"./sched",
+        r"./resched",
+        r"./resched/" # ,
+        # r"./resched"
     ]
     for _directory in path_list:
         if not os.path.exists(_directory):
@@ -95,23 +97,6 @@ def skip(arr: list[list[int]]) -> list:
     return result
 
 
-def compress(arr: list[list[int]]) -> list:
-    result = []
-    for x in range(2):
-        compressed = [arr[x][index] for index in range(len(arr[x])) if index % 2 == 0]
-        result.append(compressed)
-    # result.append(arr[2])
-    # result.append(arr[3])
-    return result
-
-
-# def multi_index(arr: list[int], value: int) -> list[int]:
-#     result = []
-#     for index in range(len(arr)):
-#         if arr[index] == value:
-#             result.append(index)
-#     return result
-
 # OpenAI code, quite useful
 def get_sequences(lst: list[int]):
     # Initialize variables to track the current sequence
@@ -135,6 +120,20 @@ def get_sequences(lst: list[int]):
 
     # Yield the final sequence
     yield lst[start_index], start_index, current_length
+
+
+
+def compress(arr: list[list[int]]) -> list:
+    result = [[], []]
+    for x in range(2):
+        # a : int = -1
+        compress = get_sequences(arr[x])
+        for item in compress:
+            result[x].extend([item[0] for _ in range(item[2]//2)])
+
+    # result.append(arr[2])
+    # result.append(arr[3])
+    return result
 
 
 def get_initial_fitness(weeks: int, quantity: int) -> tuple[list[int], list[int]]:
@@ -177,6 +176,5 @@ def get_output_sched(weeks: int) -> list[list[int]]:
     with open("./sched/week_{}/raw.txt".format(weeks), "r") as file:
         lines = file.readlines()
         for x, line in enumerate(lines):
-            # print(f"Test {x}: {line}")
             result[x].extend([int(_) for _ in line.split()])
     return result
