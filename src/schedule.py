@@ -169,11 +169,11 @@ class PhaseBaseSchedule:
         self.Task = [False for _ in range(6)]
         self.Table = [0 for _ in range(6)]
         temp = [True for _ in range(6)]
-        for x in phase1:
-            for y in x:
-                temp[y] = False
-        for x in range(len(temp)):
-            if temp[x]: print(f"Sth wrong with this: Mising {x}")
+        # for x in phase1:
+        #     for y in x:
+        #         temp[y] = False
+        # for x in range(len(temp)):
+        #     if temp[x]: print(f"Sth wrong with this: Mising {x}")
         # self.TablePhase2 = [int(0) for _ in range(6)]
         # self.Queue: list[list[int]] = [[], []]
 
@@ -263,7 +263,7 @@ class PhaseBaseSchedule:
             else:
                 cycle += 1
         for y in range(4):
-            for x in range(cycle+1):
+            for x in range(cycle + 1):
                 if result[y][x] == -1:
                     result[y][x] = 8
         return result, cycle

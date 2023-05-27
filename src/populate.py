@@ -28,8 +28,7 @@ def populated(weeks: int):
             file.writelines(' '.join(str(ele) for ele in machine) + '\n')
         # file.write(str(cycle))
         make_span[route] = cycle
-        output = [int(np.ceil(_/9000)) for _ in output]
-    
+        # output = [int(np.ceil(_/9000)) for _ in output]
     with open(write_Path + "span.txt", "w+") as fitness_file:
         fitness_file.writelines(str(ele) + '\n' for ele in make_span)
     # for timestamp in result:

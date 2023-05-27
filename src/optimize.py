@@ -67,7 +67,7 @@ class Bee:
         series = node_encode(self.solution[line])
         if len(series) <= 1:
             return
-        start_index, end_index = sorted(np.random.choice(range(len(series)),size=2,replace=False))
+        start_index, end_index = sorted(np.random.choice(range(len(series)), size=2, replace=False))
         hold = series[start_index: end_index]
         hold.reverse()
         series[start_index: end_index] = hold
@@ -151,6 +151,6 @@ class BeeColony:
         with open(r'./sched/week_{}/raw.txt'.format(self.para), "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
-        with open(r'./sched/week_{}/span.txt'.format(self.para),"w+") as file:
+        with open(r'./sched/week_{}/span.txt'.format(self.para), "w+") as file:
             file.write(str(cycle))
         return cycle

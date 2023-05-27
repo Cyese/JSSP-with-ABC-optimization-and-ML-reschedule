@@ -4,7 +4,7 @@ from utilities import make_dir
 
 make_dir()
 
-weeks = int(input("Enter a weeks for optimizat40ion: "))
+weeks = int(input("Enter a weeks for optimization: "))
 bee = BeeColony(weeks)
 limit = bee.optimize()
 draw_chart(weeks, limit)

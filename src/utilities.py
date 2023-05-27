@@ -3,11 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plot
 import os
 from machine import *
-from PIL import  Image
+from PIL import Image
 import glob
 
 path = r"./"
 write_out_path = path + "sample/"
+
 
 def make_dir():
     path_list = [
@@ -15,9 +16,9 @@ def make_dir():
         r"./sched"
         # r"./span"
     ]
-    for dir in path_list:
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+    for _directory in path_list:
+        if not os.path.exists(_directory):
+            os.mkdir(_directory)
 
 
 def check(arr: list):
@@ -145,7 +146,7 @@ def get_initial_fitness(weeks: int, quantity: int) -> tuple[list[int], list[int]
     # rate = np.array(result)
     # rate = rate.sum() / rate
     # rate = rate / rate.sum()
-    choice = sorted(np.random.choice(len(result), size=quantity).tolist()) # , p=rate
+    choice = sorted(np.random.choice(len(result), size=quantity).tolist())  # , p=rate
     fitness_value = [result[_] for _ in choice]
     return choice, fitness_value
 
@@ -171,11 +172,11 @@ def node_decode(arr: list[tuple]) -> list[int]:
 
 
 def get_output_sched(weeks: int) -> list[list[int]]:
-    result : list[list[int]]
+    result: list[list[int]]
     result = [[] for _ in range(4)]
-    with open("./sched/week_{}.txt".format(weeks), "r") as file:
+    with open("./sched/week_{}/raw.txt".format(weeks), "r") as file:
         lines = file.readlines()
-        for x,line in enumerate(lines):
+        for x, line in enumerate(lines):
             # print(f"Test {x}: {line}")
-            result[x].extend([int(_)  for _ in line.split()])
+            result[x].extend([int(_) for _ in line.split()])
     return result
