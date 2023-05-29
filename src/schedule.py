@@ -156,15 +156,13 @@ class PhaseBaseSchedule:
         self.Phase1Schedule = phase1
         self.Task = [False for _ in range(6)]
         self.Table = [0 for _ in range(6)]
-        temp = [True for _ in range(6)]
-        for x in phase1:
-            for ope in x:
-                temp[ope] &= False
-        for x, item in enumerate(temp):
-            if item:
-                print(f"Missing a key: {x}") 
-
-
+        # temp = [True for _ in range(6)]
+        # for x in phase1:
+        #     for ope in x:
+        #         temp[ope] &= False
+        # for x, item in enumerate(temp):
+        #     if item:
+        #         print(f"Missing a key: {x}") 
 
 
     def dispatch_P1(self, machine_id: int) -> None:
@@ -244,7 +242,7 @@ class PhaseBaseSchedule:
                 self.arrange_P2(machine_id)
         return self.is_Done()
 
-    def run(self):
+    def run(self) -> tuple[list[list[int]] ,int]:
         result = [[] for _ in range(4)]
         cycle = 0
         while True:

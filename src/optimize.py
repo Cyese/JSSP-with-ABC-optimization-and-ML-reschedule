@@ -17,18 +17,25 @@ class Bee:
             Scout class will have to use schedule module to re-phrase the schedule in to usable state
         """
         self.solution = [[x for x in y] for y in arr]
+        self.save = self.solution.copy()
+        self.Key = self.calc_fitness()
 
     def search(self) -> tuple[list, int]:
-        # for _ in range(10):
-        # q2 = np.random.random()
-        # if q2 <= 0.3:
-        # self.interchange()
-        # elif 0.3 < q2 <= 0.7:
-        # self.shift()
-        # else:
-        self.inverse()
-        scheduler = PhaseBaseSchedule(self.solution)
-        return scheduler.run()
+        for __ in range(10):
+            for _ in range(5):
+                q2 = np.random.random()
+                if q2 <= 0.3:
+                    self.interchange()
+                elif 0.3 < q2 <= 0.7:
+                    self.shift()
+                else:
+                    self.inverse() 
+            new_key =self.calc_fitness()
+            if new_key < self.Key:
+                self.Key = new_key
+                self.save = self.solution
+                self.solution = self.save.copy()
+        return self.save, self.Key
 
     def interchange(self):
         """Has 2 random behaviour and randomly run one of the 2 ():
@@ -52,9 +59,15 @@ class Bee:
                 rcv, snd = series_1, series_2
             end_node = snd.pop()
             split = np.random.choice(range(end_node[1]))
-            rcv.append((end_node[0], split))
             snd.append((end_node[0], end_node[1] - split))
-
+            add = True
+            for i,x in enumerate(rcv):
+                if x[0] == end_node[0]:
+                    rcv.insert(i,(end_node[0], split))
+                    add = False 
+                    break
+            if add:
+                rcv.append((end_node[0], split))
         self.solution[0] = node_decode(series_1)
         self.solution[1] = node_decode(series_2)
         return
@@ -82,26 +95,54 @@ class Bee:
         if len(series) == 1:
             return
         seq = series.pop(np.random.choice(range(len(series))))
-        mod_rate = [4 if _[0] == seq[0] else 1 for _ in series]  # typical off-banner rate_up
-        mod_rate.append(1)
-        mod_rate = np.array(mod_rate)
-        mod_rate = mod_rate / mod_rate.sum()
-        series.insert(np.random.choice(range(len(series) + 1), p=mod_rate), seq)
+        # series.insert(np.random.choice(range(len(series) + 1), p=mod_rate), seq)
+        add = True
+        for i,x in enumerate(series):
+            if x[0] == seq[0]:
+                series.insert(i,seq)
+                add = False 
+                break
+        if add:
+            series.insert(np.random.choice(range(len(series) + 1)), seq)
         self.solution[line] = node_decode(series)
         return
 
-
+    def calc_fitness(self) -> int:
+        lines: list[int] = [0,0]
+        for k, line in enumerate(self.solution):
+            for i,batch in enumerate(line):
+                prev = 0
+                if i==0:
+                    prev = batch
+                elif batch != prev:
+                    prev = batch
+                    lines[k] +=2
+                lines[k] += 2
+        return max(lines)
+                
 class Scout:
     def __init__(self, weeks: int, _path: int, fitness: int) -> None:
         self.solution = ORead(weeks, _path)
-        self.fitness = fitness
+        self.fitness = self.cal_fitness()
+        # self.OriginalKey = [self.solution[0].count(_) + self.solution[0].count(_) for _ in range(6)]
 
-    pass
+    def cal_fitness(self)-> int:
+        lines: list[int] = [0,0]
+        for k, line in enumerate(self.solution):
+            for i,batch in enumerate(line):
+                prev = 0
+                if i==0:
+                    prev = batch
+                elif batch != prev:
+                    prev = batch
+                    lines[k] +=2
+                lines[k] += 2
+        return max(lines)
 
     def get(self):
         return self.solution, self.fitness
 
-    def set(self, solution, fitness):
+    def set(self, solution: list[list[int]], fitness):
         self.solution = solution
         self.fitness = fitness
 
@@ -119,8 +160,6 @@ class BeeColony:
         self.para = weeks
         self.abandon = []
         self.ScoutBee: list[Scout] = []
-        # print(self.path)
-        # print(self.fitness)
 
     def neighbour_optimize(self):
         best_site = self.fitness.index(min(self.fitness))
@@ -130,7 +169,7 @@ class BeeColony:
             new_Bee = Bee(cur_sol)
             new_sol, new_fit = new_Bee.search()
             if new_fit < cur_fit:
-                scout.set(compress(skip(new_sol)), new_fit)
+                scout.set(new_sol, new_fit)
         return scout
 
     def global_search(self):

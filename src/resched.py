@@ -70,3 +70,8 @@ def gen_variants(weeks :int):
         sched = get_output_sched(weeks)
         rescheduler = ReScheduleTime(sched,loc,changes,0)
         rescheduler.inplace_mod()
+
+
+class ReScheduleGood:
+    def __init__(self) -> None:
+        pass

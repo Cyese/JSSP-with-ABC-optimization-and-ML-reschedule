@@ -77,17 +77,11 @@ def unassigned(arr: list[list[int]]) -> bool:
 
 def ORead(weeks: int, _path: int) -> list[list[int]]:
     result = []
-    # value : int = 0
     with open(r"./sample/week_{}/path_{}.txt".format(weeks, _path), "r") as file:
         lines = file.readlines()
     for line in lines:
         result.append([int(_) for _ in line.split() if _ != '7' and _ != '8'])
     result = result[0:2]
-    # print(temp) 
-    # with open("./population/week_{}/span.txt".format(weeks), "r") as file:
-    #     for i,lines in enumerate(file):
-    #         if i == path -1:
-    #             value = int(lines.strip())
     return compress(result)  # value
     # return result
 
