@@ -1,11 +1,11 @@
 from optimize import BeeColony
 from graph import draw_chart, draw_sample, display
 from utilities import make_dir
-from resched import gen_t_variants
+# from resched import make_disturbance
 
 
-# make_dir()
-
+make_dir()
+# make_disturbance()
 # weeks = int(input("Enter a weeks for optimization: "))
 # bee = BeeColony(weeks)
 # limit = bee.optimize()

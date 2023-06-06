@@ -5,9 +5,10 @@ import os
 from machine import *
 from PIL import Image
 import glob
+import json
 
-path = r"./"
-write_out_path = path + "sample/"
+
+write_out_path = r"./sample/"
 
 
 def make_dir():
@@ -15,8 +16,8 @@ def make_dir():
         r"./sample/",
         r"./sched",
         r"./resched",
-        r"./resched/" # ,
-        # r"./resched"
+        r"./resched/",
+        r"./disturbance"
     ]
     for _directory in path_list:
         if not os.path.exists(_directory):
@@ -181,3 +182,21 @@ def get_output_sched(weeks: int) -> list[list[int]]:
         for x, line in enumerate(lines):
             result[x].extend([int(_) for _ in line.split()])
     return result
+
+
+def end_before(arr: list[list[int]]) -> int:
+    iter_range = range(len(arr[2]))
+    reversed(iter_range)
+    count1, count2 = 0,0
+    stop = [False for _ in range(2)]
+    for _ in iter_range:
+        if arr[2][_]!= 8:
+            stop[0]= True
+        else: count1 +=1
+        if arr[3][_] !=8:
+            stop[1]= True
+        else: count2 +=1
+        if stop[0] and stop[1]:
+            break
+    return  2 if count1 > count2 else 3
+    # return sth: int =0 
