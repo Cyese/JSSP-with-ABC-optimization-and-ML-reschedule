@@ -258,3 +258,23 @@ class PhaseBaseSchedule:
                 if result[y][x] == -1:
                     result[y][x] = 8
         return result, cycle
+
+
+    # def runToStage(self, data, checkpoint: int):
+    #     result = [[] for _ in range(4)]
+    #     cycle = 0
+    #     while cycle < checkpoint:
+    #         Is_done = self.arrange()
+    #         for i in range(4):
+    #             result[i].append(self.MachineLine[i].get_config())
+    #         if Is_done:
+    #             break
+    #         else:
+    #             cycle += 1
+    #     """
+    #         Add code to modify as the demand changes (inplace removal/ of the patch then continue)
+    #         What need to be done: branching,
+        
+    #     """
+    #     return result, cycle
+

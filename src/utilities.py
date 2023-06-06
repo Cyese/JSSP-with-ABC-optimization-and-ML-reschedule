@@ -85,6 +85,15 @@ def ORead(weeks: int, _path: int) -> list[list[int]]:
     return compress(result)  # value
     # return result
 
+def OutputCompress(weeks: int) -> list[list[int]]:
+    result: list[list[int]] = []
+    with open(r"./sched/week_{}/raw.txt".format(weeks), "r") as file:
+        lines = file.readlines()
+    for line in lines:
+        result.append([int(_) for _ in line.split() if _ != '7' and _ != '8'])
+    result = result[0:2]
+    return compress(result)
+
 
 def skip(arr: list[list[int]]) -> list:
     result = [[x for x in y if x != 7 and x != 8] for y in arr]

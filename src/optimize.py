@@ -21,20 +21,22 @@ class Bee:
         self.Key = self.calc_fitness()
 
     def search(self) -> tuple[list, int]:
-        for __ in range(10):
-            for _ in range(5):
-                q2 = np.random.random()
-                if q2 <= 0.3:
-                    self.interchange()
-                elif 0.3 < q2 <= 0.7:
-                    self.shift()
-                else:
-                    self.inverse() 
-            new_key =self.calc_fitness()
-            if new_key < self.Key:
-                self.Key = new_key
-                self.save = self.solution
-                self.solution = self.save.copy()
+        # for __ in range(10):
+        for _ in range(100):
+            q2 = np.random.random()
+            if q2 <= 0.3:
+                self.interchange()
+            elif 0.3 < q2 <= 0.7:
+                self.shift()
+            else:
+                self.inverse() 
+        new_key =self.calc_fitness()
+        if new_key < self.Key:
+            self.Key = new_key
+            self.save = self.solution
+            self.solution = self.save.copy()
+        else:
+            self.solution = self.save.copy()
         return self.save, self.Key
 
     def interchange(self):
