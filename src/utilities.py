@@ -7,7 +7,6 @@ from PIL import Image
 import glob
 import json
 
-
 write_out_path = r"./sample/"
 
 
@@ -86,6 +85,7 @@ def ORead(weeks: int, _path: int) -> list[list[int]]:
     return compress(result)  # value
     # return result
 
+
 def OutputCompress(weeks: int) -> list[list[int]]:
     result: list[list[int]] = []
     with open(r"./sched/week_{}/raw.txt".format(weeks), "r") as file:
@@ -126,17 +126,13 @@ def get_sequences(lst: list[int]):
     yield lst[start_index], start_index, current_length
 
 
-
 def compress(arr: list[list[int]]) -> list:
     result = [[], []]
     for x in range(2):
         # a : int = -1
-        compress = get_sequences(arr[x])
-        for item in compress:
-            result[x].extend([item[0] for _ in range(item[2]//2)])
-
-    # result.append(arr[2])
-    # result.append(arr[3])
+        compressed = get_sequences(arr[x])
+        for item in compressed:
+            result[x].extend([item[0] for _ in range(item[2] // 2)])
     return result
 
 
@@ -184,19 +180,21 @@ def get_output_sched(weeks: int) -> list[list[int]]:
     return result
 
 
-def end_before(arr: list[list[int]]) -> int:
-    iter_range = range(len(arr[2]))
+def end_before(arr: list[list[int]], para: int) -> int:
+    iter_range = range(len(arr[para]))
     reversed(iter_range)
-    count1, count2 = 0,0
+    count1, count2 = 0, 0
     stop = [False for _ in range(2)]
     for _ in iter_range:
-        if arr[2][_]!= 8:
-            stop[0]= True
-        else: count1 +=1
-        if arr[3][_] !=8:
-            stop[1]= True
-        else: count2 +=1
+        if arr[para + 0][_] != 8:
+            stop[0] = True
+        else:
+            count1 += 1
+        if arr[para + 1][_] != 8:
+            stop[1] = True
+        else:
+            count2 += 1
         if stop[0] and stop[1]:
             break
-    return  2 if count1 > count2 else 3
-    # return sth: int =0 
+    return para if count1 > count2 else (para + 1)
+    # return sth: int =0

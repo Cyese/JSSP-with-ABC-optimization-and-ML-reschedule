@@ -164,7 +164,6 @@ class PhaseBaseSchedule:
         #     if item:
         #         print(f"Missing a key: {x}") 
 
-
     def dispatch_P1(self, machine_id: int) -> None:
         if len(self.Phase1Schedule[machine_id]) == 0:
             self.MachineLine[machine_id].assign(-1)
@@ -216,19 +215,19 @@ class PhaseBaseSchedule:
     def arrange_P2(self, machine_id: int):
         current_task = self.MachineLine[machine_id].config
         if current_task == -1:
-            self.dispatch_P2(machine_id) 
+            self.dispatch_P2(machine_id)
         elif self.Table[current_task] <= 0:
             self.dispatch_P2(machine_id)
-        current_task = self.MachineLine[machine_id].config 
-        if current_task ==-1:
+        current_task = self.MachineLine[machine_id].config
+        if current_task == -1:
             return
         output = self.MachineLine[machine_id].process()
         self.Table[current_task] -= output
 
     def is_Done(self) -> bool:
-        value : bool = True
+        value: bool = True
         for enum, _ in enumerate(self.Table):
-            value &= _ == 0 and self.Task[enum] == False
+            value &= _ == 0 and self.Task[enum] is False
         value &= len(self.Phase1Schedule[0]) == 0 and len(self.Phase1Schedule[1]) == 0
         return value
 
@@ -242,7 +241,7 @@ class PhaseBaseSchedule:
                 self.arrange_P2(machine_id)
         return self.is_Done()
 
-    def run(self) -> tuple[list[list[int]] ,int]:
+    def run(self) -> tuple[list[list[int]], int]:
         result = [[] for _ in range(4)]
         cycle = 0
         while True:
@@ -259,7 +258,6 @@ class PhaseBaseSchedule:
                     result[y][x] = 8
         return result, cycle
 
-
     # def runToStage(self, data, checkpoint: int):
     #     result = [[] for _ in range(4)]
     #     cycle = 0
@@ -274,7 +272,6 @@ class PhaseBaseSchedule:
     #     """
     #         Add code to modify as the demand changes (inplace removal/ of the patch then continue)
     #         What need to be done: branching,
-        
+
     #     """
     #     return result, cycle
-

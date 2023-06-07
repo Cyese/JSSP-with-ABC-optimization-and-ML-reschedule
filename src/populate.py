@@ -11,7 +11,7 @@ def populated(weeks: int):
     write_Path = write_out_path + "week_{}/".format(weeks)
     if not os.path.exists(write_Path):
         os.mkdir(write_Path)
-    data = pd.read_excel(path+"/data/data.xlsx", sheet_name=2, usecols="B:G")
+    data = pd.read_excel("data/data.xlsx", sheet_name=2, usecols="B:G")
 
     Demand1 = [int(data.loc[weeks][_]) for _ in range(6)]
     Demand2 = [int(data.loc[weeks+1][_]) for _ in range(6)]
