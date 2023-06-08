@@ -1,15 +1,49 @@
 from utilities import json, np, glob, os, end_before, get_output_sched
 
 
-def make_disturbance() -> None:
+def make_disturbance(weeks : int) -> None:
     time = time_variant()
     time_data = json.dumps(time)
     operation = operate_variant()
     operation_data = json.dumps(operation)
-    with open("disturbance/time.json", "w+") as time_file:
+    with open(f"disturbance/week_{weeks}/time.json", "w+") as time_file:
         time_file.write(time_data)
-    with open("disturbance/operation.json", "w+") as operation_file:
+    with open(f"disturbance/week_{weeks}/operation.json", "w+") as operation_file:
         operation_file.write(operation_data)
+
+
+def gen_maintainance()-> None:
+    number_of_week = 300
+    number_of_stage = 2
+    genarator = [np.random.choice([True, False], size = number_of_week, p= [0.25, 0.75]).tolist() for _ in range(2)]
+    sth = 0
+    j : int = 0
+    result = [[] for _ in range(4)]
+    for f, stage in enumerate(genarator):
+        print(f"Maintain by stage {f + 1}: {stage.count(True)}")
+        sth += stage.count(True)
+        k = 0
+        for i, value in enumerate(stage):
+            if value:
+                result[j + (k%2)].append(i)
+                k+=1
+        j +=2
+    for k, gen in enumerate(result):
+        avgDiff = 0
+        for i in range(0,len(gen)-1):
+            avgDiff += (gen[i+1] -  gen[i])
+        avgDiff /= len(gen) -1
+        print(f"{k} : {avgDiff}")
+    maintain : dict[int,int] = {}
+    for i, gen in enumerate(result):
+        for j in gen:
+            maintain.__setitem__(j,i)
+    sorted_key = sorted([i for i in maintain])
+    sorted_maintain = {i : maintain[i] for i in sorted_key}
+    data = json.dumps(sorted_maintain)
+    with open("disturbance/maintain.json", "w+") as file:
+        file.write(data)
+    print(f"Ratio: {sth/(number_of_stage*number_of_week)}")
 
 
 # May change to more DYNAMIC way to get prob (lot more gacha)
@@ -203,7 +237,7 @@ def clean(weeks: int):
 
 def gen_t_variants(weeks: int, span: int) -> None:
     t_variants: dict
-    with open(r"disturbance/time.json", "r") as time:
+    with open(f"disturbance/week_{weeks}/time.json", "r") as time:
         data = time.read()
         t_variants = json.loads(data)
     sched = get_output_sched(weeks)
@@ -219,7 +253,7 @@ def gen_t_variants(weeks: int, span: int) -> None:
 
 def gen_o_variants(weeks: int, span: int) -> None:
     o_variants: dict
-    with open(r"disturbance/operation.json", "r") as time:
+    with open(f"disturbance/week_{weeks}/operation.json", "r") as time:
         data = time.read()
         o_variants = json.loads(data)
     sched = get_output_sched(weeks)
@@ -236,8 +270,11 @@ def gen_o_variants(weeks: int, span: int) -> None:
 def gen_variant_and_reschedule(weeks: int) -> None:
     clean(weeks)
     span: int
-    if not os.path.exists(f"./resched/week_{weeks}"):
-        os.mkdir(f"./resched/week_{weeks}")
+    if not os.path.exists(f"disturbance/week_{weeks}"):
+        os.mkdir(f"disturbance/week_{weeks}")
+        make_disturbance(weeks)
+    if not os.path.exists(f"resched/week_{weeks}"):
+        os.mkdir(f"resched/week_{weeks}")
     with open(f"sched/week_{weeks}/span.txt", "r") as file:
         span = int(file.read())
 
@@ -246,4 +283,8 @@ def gen_variant_and_reschedule(weeks: int) -> None:
     return
 
 
-# make_disturbance()
+# make_disturbance() This is a warning! <<DO NOT UNCOMMENT THIS IN ANY CIRCUMSTANCES !!!>>
+# gen_maintainance()
+ 
+
+## Structural
