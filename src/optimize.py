@@ -176,6 +176,9 @@ class BeeColony:
 
     def global_search(self):
         # To improve: try to implement sth Wheel / Crossover
+        
+        for scout in self.ScoutBee:
+             scout.solution, scout.fitness = PhaseBaseSchedule(scout.solution).run()
         best = self.ScoutBee[0]
         for scout in self.ScoutBee:
             if scout.fitness < best.fitness:
@@ -186,7 +189,7 @@ class BeeColony:
         for x in range(10):
             self.ScoutBee.append(self.neighbour_optimize())
         best = self.global_search()
-        solution, cycle = PhaseBaseSchedule(best.solution).run()
+        solution, cycle = best.solution, best.fitness #PhaseBaseSchedule(best.solution).run()
         if not os.path.exists(f"./sched/week_{self.para}"):
             os.mkdir(f"./sched/week_{self.para}")
         with open(r'./sched/week_{}/raw.txt'.format(self.para), "w+") as file:

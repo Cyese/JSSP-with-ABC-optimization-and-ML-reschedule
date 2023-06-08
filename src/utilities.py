@@ -59,13 +59,14 @@ def make_operation_node(arr: list[MachinePhase1 | MachinePhase2]) -> list[int]:
 
 
 def get_max(table: list, task: list[bool]) -> int:
-    _max = 0
+    _max, index= 0, -1
     for i in range(len(task)):
-        if _max <= table[i] and not task[i]:
+        if _max < table[i] and task[i] is False:
             _max = table[i]
-    if _max == 0:
+            index = i
+    if _max == 0 or index == -1:
         return -1
-    return table.index(_max)
+    return index
 
 
 def unassigned(arr: list[list[int]]) -> bool:
