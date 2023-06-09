@@ -1,10 +1,4 @@
-"""
-    Module use for testing code
-"""
+from resched import ProductionDisturbance, make_dir
 
-# import numpy as np
-
-arr =[0,1,3]
-
-# arr.insert(,-1)
-print(arr)
+make_dir()
+ProductionDisturbance()

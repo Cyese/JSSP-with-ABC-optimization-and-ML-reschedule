@@ -156,13 +156,7 @@ class PhaseBaseSchedule:
         self.Phase1Schedule = phase1
         self.Task = [False for _ in range(6)]
         self.Table = [0 for _ in range(6)]
-        # temp = [True for _ in range(6)]
-        # for x in phase1:
-        #     for ope in x:
-        #         temp[ope] &= False
-        # for x, item in enumerate(temp):
-        #     if item:
-        #         print(f"Missing a key: {x}") 
+
 
     def dispatch_P1(self, machine_id: int) -> None:
         if len(self.Phase1Schedule[machine_id]) == 0:
@@ -241,9 +235,10 @@ class PhaseBaseSchedule:
                 self.arrange_P2(machine_id)
         return self.is_Done()
 
-    def run(self) -> tuple[list[list[int]], int]:
+    def run(self) -> tuple[list[list[int]], int, list[int]]:
         result = [[] for _ in range(4)]
         cycle = 0
+        total_working_time : list[int] = [0, 0, 0, 0]
         while True:
             Is_done = self.arrange()
             for i in range(4):
@@ -256,22 +251,6 @@ class PhaseBaseSchedule:
             for x in range(cycle + 1):
                 if result[y][x] == -1:
                     result[y][x] = 8
-        return result, cycle
-
-    # def runToStage(self, data, checkpoint: int):
-    #     result = [[] for _ in range(4)]
-    #     cycle = 0
-    #     while cycle < checkpoint:
-    #         Is_done = self.arrange()
-    #         for i in range(4):
-    #             result[i].append(self.MachineLine[i].get_config())
-    #         if Is_done:
-    #             break
-    #         else:
-    #             cycle += 1
-    #     """
-    #         Add code to modify as the demand changes (inplace removal/ of the patch then continue)
-    #         What need to be done: branching,
-
-    #     """
-    #     return result, cycle
+                if result[y][x] != 8:
+                    total_working_time[y] += 1
+        return result, cycle, total_working_time

@@ -23,41 +23,6 @@ def make_dir():
             os.mkdir(_directory)
 
 
-def check(arr: list):
-    """Check if all operation is empty ( $==0 )
-        @param arr: list of demand/pending task
-        @return : all empty -> true
-    """
-    No_More_Operation = True
-    for operation in arr:
-        No_More_Operation = No_More_Operation and operation == 0
-    return No_More_Operation
-
-
-def make_operation_node(arr: list[MachinePhase1 | MachinePhase2]) -> list[int]:
-    """
-        @param arr :2-D operating
-        @return : list of operations
-    """
-    result = [0 for _ in range(4)]
-    for i in range(4):
-        result[i] = arr[i].get_config()
-        if result[i] == -1:
-            result[i] = 8
-    return result
-
-
-# def split_task(arr: list) -> tuple:
-#     arr2 = list(arr)
-#     first = []
-#     second = []
-#     for _ in range(3):
-#         first.append(arr.index(arr2.pop(arr2.index(max(arr2)))))
-#     for i in arr2:
-#         second.append(arr.index(i))
-#     return first, second
-
-
 def get_max(table: list, task: list[bool]) -> int:
     _max, index= 0, -1
     for i in range(len(task)):
@@ -173,29 +138,16 @@ def node_decode(arr: list[tuple]) -> list[int]:
 
 def get_output_sched(weeks: int) -> list[list[int]]:
     result: list[list[int]]
-    result = [[] for _ in range(4)]
-    with open("./sched/week_{}/raw.txt".format(weeks), "r") as file:
+    result = [[] for _ in range(2)]
+    with open("./sched/week_{}/compressed.txt".format(weeks), "r") as file:
         lines = file.readlines()
         for x, line in enumerate(lines):
             result[x].extend([int(_) for _ in line.split()])
     return result
 
 
-def end_before(arr: list[list[int]], para: int) -> int:
-    iter_range = range(len(arr[para]))
-    reversed(iter_range)
-    count1, count2 = 0, 0
-    stop = [False for _ in range(2)]
-    for _ in iter_range:
-        if arr[para + 0][_] != 8:
-            stop[0] = True
-        else:
-            count1 += 1
-        if arr[para + 1][_] != 8:
-            stop[1] = True
-        else:
-            count2 += 1
-        if stop[0] and stop[1]:
-            break
-    return para if count1 > count2 else (para + 1)
-    # return sth: int =0
+def read_span(weeks: int)-> int:
+    span: int
+    with open(f"sched/week_{weeks}/span.txt", "r") as file:
+        span = int(file.read())
+    return span

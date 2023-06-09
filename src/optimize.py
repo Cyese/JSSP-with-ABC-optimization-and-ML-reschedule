@@ -126,6 +126,7 @@ class Scout:
     def __init__(self, weeks: int, _path: int, fitness: int) -> None:
         self.solution = ORead(weeks, _path)
         self.fitness = self.cal_fitness()
+        self.working_time : list[int]
         # self.OriginalKey = [self.solution[0].count(_) + self.solution[0].count(_) for _ in range(6)]
 
     def cal_fitness(self)-> int:
@@ -178,7 +179,7 @@ class BeeColony:
         # To improve: try to implement sth Wheel / Crossover
         
         for scout in self.ScoutBee:
-             scout.solution, scout.fitness = PhaseBaseSchedule(scout.solution).run()
+             scout.solution, scout.fitness, scout.working_time = PhaseBaseSchedule(scout.solution).run()
         best = self.ScoutBee[0]
         for scout in self.ScoutBee:
             if scout.fitness < best.fitness:
@@ -190,11 +191,17 @@ class BeeColony:
             self.ScoutBee.append(self.neighbour_optimize())
         best = self.global_search()
         solution, cycle = best.solution, best.fitness #PhaseBaseSchedule(best.solution).run()
-        if not os.path.exists(f"./sched/week_{self.para}"):
-            os.mkdir(f"./sched/week_{self.para}")
-        with open(r'./sched/week_{}/raw.txt'.format(self.para), "w+") as file:
+        if not os.path.exists(f"sched/week_{self.para}"):
+            os.mkdir(f"sched/week_{self.para}")
+        with open(r'sched/week_{}/raw.txt'.format(self.para), "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
-        with open(r'./sched/week_{}/span.txt'.format(self.para), "w+") as file:
+        with open(r'sched/week_{}/span.txt'.format(self.para), "w+") as file:
             file.write(str(cycle))
+        with open(r'sched/week_{}/compressed.txt'.format(self.para), "w+") as file:
+            compressed = compress(skip(solution))
+            for i in compressed:
+                file.write(' '.join(str(_) for _ in i) + '\n')
+        with open(r'sched/week_{}/working.txt'.format(self.para), "w+") as file:
+            file.write(' '.join(str(ele) for ele in best.working_time))
         return cycle
