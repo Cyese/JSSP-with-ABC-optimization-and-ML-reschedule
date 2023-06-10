@@ -119,7 +119,7 @@ class Schedule:
                 self.arrange_P2(machine_id)
         return sum(self.Table[0]) == 0 and sum(self.Table[1]) == 0
 
-    def run(self) -> tuple[list, int, list]:
+    def run(self) -> tuple[list, int]:
         result = [[] for _ in range(4)]
         cycle = 0
         while True:
@@ -134,7 +134,7 @@ class Schedule:
             for x in range(cycle + 1):
                 if result[y][x] == -1:
                     result[y][x] = 8
-        return result, cycle, self.Table[2]
+        return result, cycle
 
     def add(self, task: list[int]):
         for i in range(6):
@@ -156,7 +156,6 @@ class PhaseBaseSchedule:
         self.Phase1Schedule = phase1
         self.Task = [False for _ in range(6)]
         self.Table = [0 for _ in range(6)]
-
 
     def dispatch_P1(self, machine_id: int) -> None:
         if len(self.Phase1Schedule[machine_id]) == 0:
@@ -238,7 +237,7 @@ class PhaseBaseSchedule:
     def run(self) -> tuple[list[list[int]], int, list[int]]:
         result = [[] for _ in range(4)]
         cycle = 0
-        total_working_time : list[int] = [0, 0, 0, 0]
+        total_working_time: list[int] = [0, 0, 0, 0]
         while True:
             Is_done = self.arrange()
             for i in range(4):

@@ -90,7 +90,7 @@ class MachinePhase2:
             # self.config_time = 0
             self.state = State[2]
         if self.state == State[2]:
-            return self.capacity  
+            return self.capacity
         return 0
 
     def assign(self, job: int) -> None:

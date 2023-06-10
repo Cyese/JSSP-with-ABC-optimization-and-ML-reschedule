@@ -7,46 +7,58 @@ def generate_production(weeks: int) -> None:
     """
     ProductionDisturbance.clean(weeks)
     span: int
-    with open(f"sched/week_{weeks}/span.txt", "r") as file:
-        span = int(file.read())
+    with open(f"sched/week_{weeks}/info.json", "r") as file:
+        data = json.loads(file.read())
+        span = data["span"]
     if not os.path.exists(f"disturbance/week_{weeks}"):
         os.mkdir(f"disturbance/week_{weeks}")
     ProductionDisturbance.make_disturbance(weeks, span)
     return
 
 
-def generate_maintainance()-> None:
+def generate_maintenance() -> None:
     number_of_week = 300
     number_of_stage = 2
-    genarator = [np.random.choice([True, False], size = number_of_week, p= [0.25, 0.75]).tolist() for _ in range(2)]
+    generator = [np.random.choice([True, False], size=number_of_week, p=[0.25, 0.75]).tolist() for _ in range(2)]
     sth = 0
-    j : int = 0
+    j: int = 0
     result = [[] for _ in range(4)]
-    for f, stage in enumerate(genarator):
+    for f, stage in enumerate(generator):
         print(f"Maintain by stage {f + 1}: {stage.count(True)}")
         sth += stage.count(True)
         k = 0
         for i, value in enumerate(stage):
             if value:
-                result[j + (k%2)].append(i)
+                result[j + (k % 2)].append(i)
                 k += 1
         j += 2
     for k, gen in enumerate(result):
         avgDiff = 0
-        for i in range(0,len(gen)-1):
-            avgDiff += (gen[i+1] -  gen[i])
-        avgDiff /= len(gen) -1
+        for i in range(0, len(gen) - 1):
+            avgDiff += (gen[i + 1] - gen[i])
+        avgDiff /= len(gen) - 1
         print(f"{k} : {avgDiff}")
-    maintain : dict[int,int] = {}
+    maintain: dict[int, int] = {}
     for i, gen in enumerate(result):
         for j in gen:
-            maintain.__setitem__(j,i)
+            maintain.__setitem__(j, i)
     sorted_key = sorted([i for i in maintain])
-    sorted_maintain = {i : maintain[i] for i in sorted_key}
+    sorted_maintain = {i: maintain[i] for i in sorted_key}
     data = json.dumps(sorted_maintain)
     with open("disturbance/maintain.json", "w+") as file:
         file.write(data)
-    print(f"Ratio: {sth/(number_of_stage*number_of_week)}")
+    print(f"Ratio: {sth / (number_of_stage * number_of_week)}")
+
+def interpret_maintenance() -> None:
+    maintain = json.load(open("disturbance/maintain.json", "r"))
+    new_maintain : dict[int, list[int]] = {}
+    for x in maintain:
+        week = int(x)
+        info = json.load(open("sched/week_{}/info.json".format(week), 'r'))["span"]
+        time = np.random.randint(0, info)
+        machine = maintain[x]
+        new_maintain.__setitem__(week, [machine, time])
+    json.dump(new_maintain, open("disturbance/maintain.json", "w+"))
 
 
 # May change to more DYNAMIC way to get prob (lot more gacha)
@@ -54,7 +66,7 @@ class StaticProb:
     def __init__(self, span: int) -> None:
         self.size = span
         self.chance = np.random.choice([False, True], p=np.array([0.95, 0.05]),
-                                       size=(4,span)).tolist()  # Predawn sample size at runtime
+                                       size=(4, span)).tolist()  # Predawn sample size at runtime
         self.y = -1
         self.x = 0
 
@@ -62,17 +74,17 @@ class StaticProb:
         self.y += 1
         if self.y == self.size:
             self.x += 1
-            self.y =0
+            self.y = 0
         if self.x == 4:
-            self.x = 0 
+            self.x = 0
         return self.chance[self.x][self.y]
 
 
 class ProductionDisturbance:
-    """This is a encapsulation class since every thing is a mess
-        Note for call tree:
+    """This is a wrapper class since every thing is a mess
     """
     count = 0
+
     class RescheduleProduction:
         def __init__(self, phase1: list[list[int]]) -> None:
             self.MachineLine: list[MachinePhase1 | MachinePhase2]
@@ -82,8 +94,7 @@ class ProductionDisturbance:
                 MachinePhase2(1),
                 MachinePhase2(1)
             ]
-            self.disturb : list[int]
-            # self.maintain : list[int]
+            self.disturb: list[int]
             self.Dispatch = [True, True]
             self.Operate = [[-1, 8] for _ in range(4)]
             self.PenaltyTime = [4, 3, 8, 16]
@@ -106,7 +117,6 @@ class ProductionDisturbance:
                 self.Operate[machine_id][0] = choice
                 self.Operate[machine_id][1] = 0
             return
-
 
         def dispatch_P2(self, machine_id: int) -> None:
             if (self.Operate[machine_id][0] == -1 and sum(self.Table) != 0) \
@@ -160,7 +170,7 @@ class ProductionDisturbance:
                 self.Table[current_task] -= output
             elif disturb == -1:
                 self.arrange_P2(machine_id)
-            elif disturb == 1:  
+            elif disturb == 1:
                 pass
             elif disturb == 2:
                 self.insert_batch(current_task)
@@ -187,7 +197,7 @@ class ProductionDisturbance:
                     else:
                         self.arrange_P2(machine_id)
             return self.is_Done()
-        
+
         def insert_batch(self, _id: int):
             added = False
             for machine in self.Phase1Schedule:
@@ -198,14 +208,14 @@ class ProductionDisturbance:
                         break
             if not added:
                 self.Phase1Schedule[0].append(_id)
-            
-        def run_with_disturbance(self)-> tuple[list[list[int]], int, list[int]]:
+
+        def run_with_disturbance(self) -> tuple[list[list[int]], int, list[int]]:
             result = [[] for _ in range(4)]
             cycle = 0
             machine, time, _type = self.disturb
-            total_working_time : list[int] = [0, 0, 0, 0]
+            total_working_time: list[int] = [0, 0, 0, 0]
             while True:
-                if time <= cycle <= time + 1: 
+                if time <= cycle <= time + 1:
                     Is_done = self.arrange(machine, _type)
                 else:
                     Is_done = self.arrange()
@@ -222,8 +232,7 @@ class ProductionDisturbance:
                     if result[y][x] != 8:
                         total_working_time[y] += 1
             return result, cycle, total_working_time
-    
-    
+
     @staticmethod
     def clean(weeks: int) -> None:
         """Utility function: clear space for rescheduling data
@@ -237,10 +246,10 @@ class ProductionDisturbance:
         for file in file_list:
             os.remove(file)
 
-    ### Space for creating disturbance ###
+    # ---Space for creating disturbance--- #
 
     @staticmethod
-    def make_disturbance(weeks : int, size: int) -> None:
+    def make_disturbance(weeks: int, size: int) -> None:
         time = ProductionDisturbance.time_variant(size)
         time_data = json.dumps(time)
         operation = ProductionDisturbance.operate_variant(size)
@@ -274,11 +283,11 @@ class ProductionDisturbance:
         for x in range(4):
             for y in range(120):
                 if prob.randomize():
-                    variants.__setitem__(counter, (x, y, 2)) # 2 represent broken batch
+                    variants.__setitem__(counter, (x, y, 2))  # 2 represent broken batch
                     counter += 1
         return variants
-    
-    ### End of space for creating disturbance ###
+
+    # ---End of space for creating disturbance--- #
 
     @staticmethod
     def generate_schedule(weeks: int, span: int) -> None:
@@ -287,27 +296,27 @@ class ProductionDisturbance:
             data = time.read()
             variants = json.loads(data)
         for variant in variants:
-            ProductionDisturbance.make_reschedule_PDisturbance(weeks, variants[variant], span)
-        
+            ProductionDisturbance.make_reschedule_PDisturbance(weeks, variants[variant], span, "time")
+        ProductionDisturbance.count = 0
         with open(f"disturbance/week_{weeks}/operation.json", "r") as operation:
             data = operation.read()
             variants = json.loads(data)
         for variant in variants:
-            ProductionDisturbance.make_reschedule_PDisturbance(weeks, variants[variant], span)
+            ProductionDisturbance.make_reschedule_PDisturbance(weeks, variants[variant], span, "opertation")
 
     @staticmethod
-    def make_reschedule_PDisturbance(weeks: int, variants: list[int], span: int) -> None:
+    def make_reschedule_PDisturbance(weeks: int, variants: list[int], span: int, filename: str) -> None:
         sched = get_output_sched(weeks)
         changes: list[int] = variants
         rescheduler = ProductionDisturbance.RescheduleProduction(sched)
         rescheduler.add_disturbance(changes)
-        solution, _span, working_time= rescheduler.run_with_disturbance()
-        with open(f'resched/week_{weeks}/production_{rescheduler.count}.txt', "w+") as file:
+        solution, _span, working_time = rescheduler.run_with_disturbance()
+        with open(f'resched/week_{weeks}/{filename}_{rescheduler.count}.txt', "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
-        data = {"span" : _span, "working" : working_time}
+        data = {"span": _span, "working": working_time}
         write_data = json.dumps(data)
-        with open(f'resched/week_{weeks}/info_{rescheduler.count}.json', "w+") as file:
+        with open(f'resched/week_{weeks}/{filename}_{rescheduler.count}.json', "w+") as file:
             file.write(write_data)
 
     def __init__(self) -> None:
@@ -317,6 +326,153 @@ class ProductionDisturbance:
                 os.mkdir(f"resched/week_{week}")
             span = read_span(week)
             ProductionDisturbance.generate_schedule(week, span)
-            print(f"Reschedule variant week {week} sucessfully generate!")
             ProductionDisturbance.count = 0
+        pass
+
+
+class MaintenanceDisturbance:
+    class RescheduleMaintenance:
+        def __init__(self, phase1: list[list[int]]) -> None:
+            self.MachineLine: list[MachinePhase1 | MachinePhase2]
+            self.MachineLine = [
+                MachinePhase1(2, 2),
+                MachinePhase1(2, 2),
+                MachinePhase2(1),
+                MachinePhase2(1)
+            ]
+            self.Dispatch = [True, True]
+            self.Operate = [[-1, 8] for _ in range(4)]
+            self.PenaltyTime = [4, 3, 8, 16]
+            self.Phase1Schedule = phase1
+            self.Task = [False for _ in range(6)]
+            self.Table = [0 for _ in range(6)]
+            self.maintenance : list[int]
+
+        def add_maintenance(self, maintenace : list[int])-> None:
+            self.maintenance = maintenace
+
+        def dispatch_P1(self, machine_id: int) -> None:
+            if len(self.Phase1Schedule[machine_id]) == 0:
+                self.MachineLine[machine_id].assign(-1)
+            else:
+                choice = self.Phase1Schedule[machine_id].pop(0)
+                self.MachineLine[machine_id].assign(choice)
+                self.Operate[machine_id][0] = choice
+                self.Operate[machine_id][1] = 0
+            return
+
+        def dispatch_P2(self, machine_id: int) -> None:
+            if (self.Operate[machine_id][0] == -1 and sum(self.Table) != 0) \
+                    or self.Table[self.Operate[machine_id][0]] <= 0:
+                # No more to produce
+                choice = get_max(self.Table, self.Task)
+                current = self.Operate[machine_id][0]
+                if current != -1:
+                    self.Task[current] = False
+                if choice == -1:
+                    self.Operate[machine_id][0] = choice
+                    self.MachineLine[machine_id].assign(choice)
+                    return
+                self.MachineLine[machine_id].assign(choice)
+                self.Operate[machine_id][0] = choice
+                self.Operate[machine_id][1] = 0
+                self.Task[choice] = True
+
+        def arrange_P1(self, machine_id: int) -> None:
+            if self.MachineLine[machine_id].config == -1 or self.Dispatch[machine_id]:
+                self.dispatch_P1(machine_id)
+                self.Dispatch[machine_id] = False
+            output = self.MachineLine[machine_id].process()
+            if output != 0:
+                self.Dispatch[machine_id] = True
+                cur = self.MachineLine[machine_id].config
+                if cur == -1:
+                    pass
+                else:
+                    self.Table[cur] += output
+            else:
+                pass
+            return
+
+        def arrange_P2(self, machine_id: int):
+            current_task = self.MachineLine[machine_id].config
+            if current_task == -1:
+                self.dispatch_P2(machine_id)
+            elif self.Table[current_task] <= 0:
+                self.dispatch_P2(machine_id)
+            current_task = self.MachineLine[machine_id].config
+            if current_task == -1:
+                return
+            output = self.MachineLine[machine_id].process()
+            self.Table[current_task] -= output
+
+        def is_Done(self) -> bool:
+            value: bool = True
+            for enum, _ in enumerate(self.Table):
+                value &= _ == 0 and self.Task[enum] is False
+            value &= len(self.Phase1Schedule[0]) == 0 and len(self.Phase1Schedule[1]) == 0
+            return value
+
+        def arrange(self, machine: int = 5):
+            for machine_id in [0, 1, 2, 3]:  # range(4):
+                if machine_id == machine:
+                    continue
+                elif self.PenaltyTime[machine_id] > 0:
+                    self.PenaltyTime[machine_id] -= 1
+                elif machine_id // 2 == 0:
+                    self.arrange_P1(machine_id)
+                else:
+                    self.arrange_P2(machine_id)
+            return self.is_Done()
+
+        def run_with_maintenance(self) -> tuple[list[list[int]], int, list[int]]:
+            result = [[] for _ in range(4)]
+            cycle = 0
+            total_working_time: list[int] = [0, 0, 0, 0]
+            machine, time = self.maintenance 
+            while True:
+                if time <= cycle < time +3:
+                    Is_done = self.arrange(machine)
+                else:
+                    Is_done = self.arrange()
+                for i in range(4):
+                    result[i].append(self.MachineLine[i].get_config())
+                if Is_done:
+                    break
+                else:
+                    cycle += 1
+            if cycle <= time:
+                pass
+            elif time < cycle < time +3:
+                result[machine][time : cycle] = [9 for _ in range(cycle - time)]
+            else:
+                result[machine][time: time+3] = [9 for _ in range(3)] 
+            for y in range(4):
+                for x in range(cycle + 1):
+                    if result[y][x] == -1:
+                        result[y][x] = 8
+                    if result[y][x] != 8:
+                        total_working_time[y] += 1
+            return result, cycle, total_working_time
+
+    @staticmethod
+    def generate_schedule() -> None:
+        maintain = json.load(open("disturbance/maintain.json", "r"))
+        for item in maintain:
+            week = int(item)
+            sched = get_output_sched(week)
+            maintain_info = maintain[item]
+            rescheduler = MaintenanceDisturbance.RescheduleMaintenance(sched)
+            rescheduler.add_maintenance(maintain_info)
+            solution, _span, working_time = rescheduler.run_with_maintenance()
+            with open(f'resched/week_{week}/maintain.txt', "w+") as file:
+                for x in solution:
+                    file.writelines(' '.join(str(_) for _ in x) + '\n')
+            data = {"span": _span, "working": working_time}
+            write_data = json.dumps(data)
+            with open(f'resched/week_{week}/maintain_info.json', "w+") as file:
+                file.write(write_data)
+
+    def __init__(self) -> None:
+        MaintenanceDisturbance.generate_schedule()
         pass

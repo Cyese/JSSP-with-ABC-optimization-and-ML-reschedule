@@ -75,11 +75,6 @@ def draw_sample(weeks: int):
         lines = file.readlines()
     for line in lines:
         result.append([int(_) for _ in line.split()])
-
-    # print(result)
-
-    # print(result[0])
-
     """
         format: 
         y : [] task[x] name
@@ -87,9 +82,6 @@ def draw_sample(weeks: int):
         left: start time
     """
     Task = [[[] for _ in range(9)] for _ in range(4)]
-    # Task[x]0 = []
-    # Task[x]0 = []
-
     Color_pallet = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', '', 'grey', 'white']
     for x in range(4):
         for value, start, length in get_sequences(result[x]):
@@ -110,17 +102,12 @@ def draw_sample(weeks: int):
             elif value == 8:
                 Task[x][8].append((start, length))
 
-        # Task[x][8].pop()
-
-    # print(Task[x]0)
-
     fig, ax = plot.subplots()
     for y in range(4):
         for x in range(len(Task[y])):
             if x == 6:
                 continue
             for task in Task[y][x]:
-                # task[x]
                 ax.broken_barh([task], (y + 0.25, 0.5), facecolors=Color_pallet[x])
     y_tick = [0.25 + _ * 0.5 for _ in range(8)]
     y_label = [f"Machine {_ // 2 + 1}" if _ % 2 == 1 else "" for _ in range(8)]

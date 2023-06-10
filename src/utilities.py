@@ -24,7 +24,7 @@ def make_dir():
 
 
 def get_max(table: list, task: list[bool]) -> int:
-    _max, index= 0, -1
+    _max, index = 0, -1
     for i in range(len(task)):
         if _max < table[i] and task[i] is False:
             _max = table[i]
@@ -146,8 +146,8 @@ def get_output_sched(weeks: int) -> list[list[int]]:
     return result
 
 
-def read_span(weeks: int)-> int:
+def read_span(weeks: int) -> int:
     span: int
-    with open(f"sched/week_{weeks}/span.txt", "r") as file:
-        span = int(file.read())
+    with open(f"sched/week_{weeks}/info.json", "r") as file:
+        span = int(json.loads(file.read())["span"])
     return span

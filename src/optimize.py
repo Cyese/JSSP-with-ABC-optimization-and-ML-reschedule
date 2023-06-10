@@ -7,7 +7,6 @@
     neighbour_size = 10
     q1 = 0.7
 """
-# from utilities import *
 from populate import *
 
 
@@ -29,8 +28,8 @@ class Bee:
             elif 0.3 < q2 <= 0.7:
                 self.shift()
             else:
-                self.inverse() 
-        new_key =self.calc_fitness()
+                self.inverse()
+        new_key = self.calc_fitness()
         if new_key < self.Key:
             self.Key = new_key
             self.save = self.solution
@@ -63,10 +62,10 @@ class Bee:
             split = np.random.choice(range(end_node[1]))
             snd.append((end_node[0], end_node[1] - split))
             add = True
-            for i,x in enumerate(rcv):
+            for i, x in enumerate(rcv):
                 if x[0] == end_node[0]:
-                    rcv.insert(i,(end_node[0], split))
-                    add = False 
+                    rcv.insert(i, (end_node[0], split))
+                    add = False
                     break
             if add:
                 rcv.append((end_node[0], split))
@@ -99,10 +98,10 @@ class Bee:
         seq = series.pop(np.random.choice(range(len(series))))
         # series.insert(np.random.choice(range(len(series) + 1), p=mod_rate), seq)
         add = True
-        for i,x in enumerate(series):
+        for i, x in enumerate(series):
             if x[0] == seq[0]:
-                series.insert(i,seq)
-                add = False 
+                series.insert(i, seq)
+                add = False
                 break
         if add:
             series.insert(np.random.choice(range(len(series) + 1)), seq)
@@ -110,35 +109,35 @@ class Bee:
         return
 
     def calc_fitness(self) -> int:
-        lines: list[int] = [0,0]
+        lines: list[int] = [0, 0]
         for k, line in enumerate(self.solution):
-            for i,batch in enumerate(line):
+            for i, batch in enumerate(line):
                 prev = 0
-                if i==0:
+                if i == 0:
                     prev = batch
                 elif batch != prev:
                     prev = batch
-                    lines[k] +=2
+                    lines[k] += 2
                 lines[k] += 2
         return max(lines)
-                
+
+
 class Scout:
     def __init__(self, weeks: int, _path: int, fitness: int) -> None:
         self.solution = ORead(weeks, _path)
         self.fitness = self.cal_fitness()
-        self.working_time : list[int]
-        # self.OriginalKey = [self.solution[0].count(_) + self.solution[0].count(_) for _ in range(6)]
+        self.working_time: list[int]
 
-    def cal_fitness(self)-> int:
-        lines: list[int] = [0,0]
+    def cal_fitness(self) -> int:
+        lines: list[int] = [0, 0]
         for k, line in enumerate(self.solution):
-            for i,batch in enumerate(line):
+            for i, batch in enumerate(line):
                 prev = 0
-                if i==0:
+                if i == 0:
                     prev = batch
                 elif batch != prev:
                     prev = batch
-                    lines[k] +=2
+                    lines[k] += 2
                 lines[k] += 2
         return max(lines)
 
@@ -177,9 +176,9 @@ class BeeColony:
 
     def global_search(self):
         # To improve: try to implement sth Wheel / Crossover
-        
+
         for scout in self.ScoutBee:
-             scout.solution, scout.fitness, scout.working_time = PhaseBaseSchedule(scout.solution).run()
+            scout.solution, scout.fitness, scout.working_time = PhaseBaseSchedule(scout.solution).run()
         best = self.ScoutBee[0]
         for scout in self.ScoutBee:
             if scout.fitness < best.fitness:
@@ -190,18 +189,18 @@ class BeeColony:
         for x in range(10):
             self.ScoutBee.append(self.neighbour_optimize())
         best = self.global_search()
-        solution, cycle = best.solution, best.fitness #PhaseBaseSchedule(best.solution).run()
+        solution, cycle = best.solution, best.fitness  # PhaseBaseSchedule(best.solution).run()
         if not os.path.exists(f"sched/week_{self.para}"):
             os.mkdir(f"sched/week_{self.para}")
         with open(r'sched/week_{}/raw.txt'.format(self.para), "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
-        with open(r'sched/week_{}/span.txt'.format(self.para), "w+") as file:
-            file.write(str(cycle))
         with open(r'sched/week_{}/compressed.txt'.format(self.para), "w+") as file:
             compressed = compress(skip(solution))
             for i in compressed:
                 file.write(' '.join(str(_) for _ in i) + '\n')
-        with open(r'sched/week_{}/working.txt'.format(self.para), "w+") as file:
-            file.write(' '.join(str(ele) for ele in best.working_time))
+        data = {"span": cycle, "working": best.working_time}
+        write_data = json.dumps(data)
+        with open(f'sched/week_{self.para}/info.json', "w+") as file:
+            file.write(write_data)
         return cycle
