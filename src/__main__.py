@@ -1,10 +1,11 @@
 from optimize import BeeColony
 from graph import draw_chart, draw_sample, display
 from utilities import make_dir
-from reschedule import ProductionDisturbance, MaintenanceDisturbance, generate_production
+from reschedule import ProductionDisturbance, MaintenanceDisturbance
+from data import Data
 
 
-make_dir()
+# make_dir()
 
 # for week in range(311):
 #     # week = int(input("Enter a weeks for optimization: "))
@@ -14,6 +15,9 @@ make_dir()
 #     draw_sample(week)
 #     generate_production(week)
 
-ProductionDisturbance()
-MaintenanceDisturbance()
+# ProductionDisturbance()
+# MaintenanceDisturbance()
 # display(8)
+
+data_for_ml = Data()
+print(data_for_ml.data)
