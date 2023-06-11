@@ -62,3 +62,5 @@ class Data:
     def make_data(self) -> None:
         holder = [Data.DataByWeek(x).get_data() for x in range(311)]
         self.data = pd.DataFrame(holder)
+        self.data.columns = ["U1", "U2", "U3", "U4", "MU", "RBM", "RSDU", "Multi", "No. Operation", "Total extended time"]
+        self.data.to_excel("data/feature.xlsx", index= False)

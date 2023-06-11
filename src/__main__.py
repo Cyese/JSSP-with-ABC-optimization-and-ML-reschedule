@@ -19,5 +19,4 @@ from data import Data
 # MaintenanceDisturbance()
 # display(8)
 
-data_for_ml = Data()
-print(data_for_ml.data)
+Data()
