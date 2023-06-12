@@ -220,9 +220,9 @@ class ProductionDisturbance:
             machine, time, _type = self.disturb
             total_working_time: list[int] = [0, 0, 0, 0]
             if machine >= 2:
-                remake = 3
+                stage = 2
             else:
-                remake = 1
+                stage = 1
             while True:
                 if time <= cycle <= time + 1:
                     Is_done = self.arrange(machine, _type)
@@ -240,7 +240,7 @@ class ProductionDisturbance:
                         result[y][x] = 8
                     if result[y][x] != 8:
                         total_working_time[y] += 1
-            return result, cycle, total_working_time, remake
+            return result, cycle, total_working_time, stage
 
         def bruteforce_P1(self, machine_id: int, disturb: int = 0) -> None:
             if self.MachineLine[machine_id].config == -1 or self.Dispatch[machine_id]:
@@ -303,9 +303,9 @@ class ProductionDisturbance:
             machine, time, _type = self.disturb
             total_working_time: list[int] = [0, 0, 0, 0]
             if machine >= 2:
-                remake = 3
+                stage = 2
             else:
-                remake = 1
+                stage = 1
             while True:
                 if time <= cycle <= time + 1:
                     Is_done = self.bruteforce(machine, _type)
@@ -323,7 +323,7 @@ class ProductionDisturbance:
                         result[y][x] = 8
                     if result[y][x] != 8:
                         total_working_time[y] += 1
-            return result, cycle, total_working_time, remake
+            return result, cycle, total_working_time, stage
 
 
     @staticmethod
@@ -402,7 +402,7 @@ class ProductionDisturbance:
         solution : list[list[int]]
         _span: int
         working_time: list[int]
-        remake: int
+        stage: int
         changes: list[int] = variants
         sched = get_output_sched(weeks)
         rescheduler = ProductionDisturbance.RescheduleProduction(sched)
@@ -414,19 +414,19 @@ class ProductionDisturbance:
         non_resched = rescheduler.run_with_bruteforce()
         rescheded : bool = resched[1] <= 0.95 * non_resched[1]
         if rescheded:
-            solution, _span, working_time, remake = resched
+            solution, _span, working_time, stage = resched
         
         else:
-            solution, _span, working_time, remake = non_resched
+            solution, _span, working_time, stage = non_resched
         original = json.load(open(f"sched/week_{weeks}/info.json", "r"))
-        working = [working_time[i] - int(_) for i, _ in enumerate(original["working"])]
-        if sum(working) == 0:
+        extended = sum([working_time[i] - int(_) for i, _ in enumerate(original["working"])])
+        if extended == 0:
             ProductionDisturbance.count -= 1
             return
         with open(f'resched/week_{weeks}/{filename}_{rescheduler.count}.txt', "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
-        data = {"span": _span, "working": working, "remake": remake, "reschedule" : rescheded, "timestep" : variants[1]}  # Remake: number of batch have to be make again
+        data = {"span": _span, "working": working_time, "extended": extended, "stage": stage, "reschedule" : rescheded, "timestep" : variants[1]}  # Remake: number of batch have to be make again
         write_data = json.dumps(data)
         with open(f'resched/week_{weeks}/{filename}_{rescheduler.count}.json', "w+") as file:
             file.write(write_data)
