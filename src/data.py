@@ -59,13 +59,22 @@ class Data:
 
     def __init__(self) -> None:
         self.data : pd.DataFrame
-        self.make_data()
+        self.make_data_product()
         pass
 
-    def make_data(self) -> None:
+    def make_data_product(self) -> None:
         holder = []
         for week in range(311):
             holder.extend(Data.DataByWeek(week).get_data())
         self.data = pd.DataFrame(holder)
         self.data.columns = ["Week", "Timestep", "U1", "U2", "U3", "U4", "MU", "RBM", "RSDU", "Total extended time","Stage", "Rescheduling"]
-        self.data.to_csv("data/feature.csv", index= False)
+        self.data.to_csv("data/feature_product.csv", index= False)
+    
+    @staticmethod
+    def export_makespans() -> None:
+        schedule_spans :list[int]= []
+        for week in range(0,311):
+            info = json.load(open(f"sched/week_{week}/info.json", 'r')) 
+            schedule_spans.append(int(info["span"]))
+        exported = pd.Series(schedule_spans)
+        exported.to_excel("data/makespan.xlsx", index= False)

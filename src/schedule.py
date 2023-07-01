@@ -7,12 +7,15 @@ class Schedule:
     def __init__(self, task_list: list[int]) -> None:
         # 2 Line of production
         self.MachineLine: list[MachinePhase1 | MachinePhase2]
-
         self.MachineLine = [
-            MachinePhase1(9000, 2),
-            MachinePhase1(9000, 2),
-            MachinePhase2(4500),
-            MachinePhase2(4500)
+            # MachinePhase1(9000, 2),
+            # MachinePhase1(9000, 2),
+            # MachinePhase2(4500),
+            # MachinePhase2(4500)
+            MachinePhase1(2500, 2),
+            MachinePhase1(2500, 2),
+            MachinePhase2(1250),
+            MachinePhase2(1250)
         ]
         self.TaskByPhase1 = [False for _ in range(6)]  # Mark which task is currently distributed
         self.TaskByPhase2 = [False for _ in range(6)]  # Same from above
