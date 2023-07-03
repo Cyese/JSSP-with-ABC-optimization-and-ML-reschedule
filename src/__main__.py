@@ -1,8 +1,8 @@
 from optimize import BeeColony
 from graph import draw_chart, draw_sample, display
 from utilities import make_dir, os
-from reschedule import ProductionDisturbance, generate_production
-from data import Data
+from reschedule import ProductionDisturbance, genarate_all_disturbance, NewOrder
+from data import Data_Product
 from machine_learning import run_DecisionTree
 from shutil import rmtree
 
@@ -44,14 +44,13 @@ def rerun_everything():
         draw_sample(weeks)
     print("Generated new schedule")
     print("Generating disturbance")
-    for weeks in range(311):
-        generate_production(weeks)
+    genarate_all_disturbance()
     print("Generated disturbanced")
     print("Rescheduling")
     ProductionDisturbance()
     print("Rescheduled")
     print("Collecting data for model training")
-    _ = Data().make_data_product()
+    _ = Data_Product().make_data_product()
     print("Data collected and stored")
 
 def continual_prompt():
@@ -72,14 +71,14 @@ def fresh_run():
         draw_sample(weeks)
     print("Generated new schedule")
     print("Generating disturbance")
-    for weeks in range(311):
-        generate_production(weeks)
+    genarate_all_disturbance()
     print("Generated disturbanced")
     print("Rescheduling")
     ProductionDisturbance()
+    NewOrder()
     print("Rescheduled")
     print("Collecting data for model training")
-    Data().make_data_product()
+    Data_Product().make_data_product()
     print("Data collected and stored")
 
 cls()
@@ -113,7 +112,7 @@ while not exited:
                 print("Canceled")
         elif choice == 5: 
             exited = True
-            Data().make_data_product()
+            Data_Product().make_data_product()
             print("Exiting")
         else:
             print("Unknown option")

@@ -1,7 +1,7 @@
 from utilities import pd, json, glob
 
 
-class Data:
+class Data_Product:
     @staticmethod
     def calculate_RBM(_max: float, MU: float) -> float:
         result: float = _max / MU
@@ -25,8 +25,8 @@ class Data:
             self.working = [int(_) for _ in read["working"]]
             utilization = [_ / self.span for _ in self.working]
             mean = sum(utilization) / len(utilization)
-            RBM = Data.calculate_RBM(max(utilization), mean)
-            RSDU = Data.calculate_RSDU(utilization, mean)
+            RBM = Data_Product.calculate_RBM(max(utilization), mean)
+            RSDU = Data_Product.calculate_RSDU(utilization, mean)
             org : list =  [weeks, -1]
             org.extend([ _ for _ in utilization])
             org.extend([mean, RBM, RSDU, 0, 0, False])
@@ -42,8 +42,8 @@ class Data:
                 span = int(data["span"])
                 working = [int(_)/span for _ in data["working"]]
                 mean = sum(working)/4
-                RBM = Data.calculate_RBM(max(working), mean)
-                RSDU = Data.calculate_RSDU(working, mean)
+                RBM = Data_Product.calculate_RBM(max(working), mean)
+                RSDU = Data_Product.calculate_RSDU(working, mean)
                 extended = int(data["extended"])
                 stage = int(data["stage"])
                 timestep = int(data["timestep"])
@@ -65,16 +65,16 @@ class Data:
     def make_data_product(self) -> None:
         holder = []
         for week in range(311):
-            holder.extend(Data.DataByWeek(week).get_data())
+            holder.extend(Data_Product.DataByWeek(week).get_data())
         self.data = pd.DataFrame(holder)
         self.data.columns = ["Week", "Timestep", "U1", "U2", "U3", "U4", "MU", "RBM", "RSDU", "Total extended time","Stage", "Rescheduling"]
         self.data.to_csv("data/feature_product.csv", index= False)
     
-    @staticmethod
-    def export_makespans() -> None:
-        schedule_spans :list[int]= []
-        for week in range(0,311):
-            info = json.load(open(f"sched/week_{week}/info.json", 'r')) 
-            schedule_spans.append(int(info["span"]))
-        exported = pd.Series(schedule_spans)
-        exported.to_excel("data/makespan.xlsx", index= False)
+
+def export_makespans() -> None:
+    schedule_spans :list[int]= []
+    for week in range(0,311):
+        info = json.load(open(f"sched/week_{week}/info.json", 'r')) 
+        schedule_spans.append(int(info["span"]))
+    exported = pd.Series(schedule_spans)
+    exported.to_excel("data/makespan.xlsx", index= False)
