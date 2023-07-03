@@ -1,9 +1,11 @@
 from machine import MachinePhase1, MachinePhase2
 from utilities import *
 
-def genarate_all_disturbance() -> None:
+def generate_all_disturbance() -> None:
     for week in range(311):
         span: int
+        if not os.path.exists(f"disturbance/week_{week}"):
+            os.mkdir(f"disturbance/week_{week}")
         with open(f"sched/week_{week}/info.json", "r") as file:
             data = json.loads(file.read())
             span = data["span"]
@@ -16,12 +18,8 @@ def generate_production(weeks: int, span: int) -> None:
     """ Use to generate the disturbance for production
     """
     ProductionDisturbance.clean(weeks)
-
-    if not os.path.exists(f"disturbance/week_{weeks}"):
-        os.mkdir(f"disturbance/week_{weeks}")
     ProductionDisturbance.make_disturbance(weeks, span)
     return
-
 
 def generate_maintenance() -> None:
     number_of_week = 300
@@ -56,7 +54,6 @@ def generate_maintenance() -> None:
         file.write(data)
     print(f"Ratio: {sth / (number_of_stage * number_of_week)}")
 
-
 def interpret_maintenance() -> None:
     maintain = json.load(open("disturbance/maintain.json", "r"))
     new_maintain: dict[int, list[int]] = {}
@@ -81,7 +78,7 @@ def generate_newOrder(week : int, span: int) -> None:
     for index, order in enumerate(order_quantity):
         _type = randint(6)
         _timestep = randint(span)
-        result.update({index : [_type, _timestep, order]})
+        result.update({index : [_timestep, _type, order]})
     json.dump(result, open(f"./disturbance/week_{week}/order.json", "w+"))
 
 
@@ -124,7 +121,6 @@ class ProductionDisturbance:
             self.Task = [False for _ in range(6)]
             self.Table = [0 for _ in range(6)]
             self.count = ProductionDisturbance.count
-            ProductionDisturbance.count += 1
 
         def add_disturbance(self, disturb: list[int]) -> None:
             self.disturb = disturb
@@ -442,7 +438,7 @@ class ProductionDisturbance:
         original = json.load(open(f"sched/week_{weeks}/info.json", "r"))
         extended = sum([working_time[i] - int(_) for i, _ in enumerate(original["working"])])
         if extended == 0:
-            ProductionDisturbance.count -= 1
+            # ProductionDisturbance.count -= 1
             return
         with open(f'resched/week_{weeks}/{filename}_{rescheduler.count}.txt', "w+") as file:
             for x in solution:
@@ -451,6 +447,9 @@ class ProductionDisturbance:
         write_data = json.dumps(data)
         with open(f'resched/week_{weeks}/{filename}_{rescheduler.count}.json', "w+") as file:
             file.write(write_data)
+        ProductionDisturbance.count += 1
+        return
+        
 
     def __init__(self) -> None:
         """Call me if u dare!"""
@@ -630,11 +629,9 @@ class NewOrder:
             self.Task = [False for _ in range(6)]
             self.Table = [0 for _ in range(6)]
             self.count = NewOrder.count
-            NewOrder.count += 1
 
         def add_order(self, order: list[int]) -> None:
             self.order = order
-            # self.run(disturb= 1)
 
         def dispatch_P1(self, machine_id: int) -> None:
             if len(self.Phase1Schedule[machine_id]) == 0:
@@ -668,16 +665,18 @@ class NewOrder:
             if self.MachineLine[machine_id].config == -1 or self.Dispatch[machine_id]:
                 self.dispatch_P1(machine_id)
                 self.Dispatch[machine_id] = False
+            # output = self.MachineLine[machine_id].process()
             output = self.MachineLine[machine_id].process()
             if output != 0:
                 self.Dispatch[machine_id] = True
+                # What's below here is black magic, don't question/ask about it, it just works (maybe)
+                # (and no im not racist the black, is just a Yugioh ref)
                 cur = self.MachineLine[machine_id].config
                 if cur == -1:
                     pass
                 else:
                     self.Table[cur] += output
-                    self.Table[cur] -= output
-                    self.Phase1Schedule[machine_id].insert(0, cur)
+                # End of black magic
             else:
                 pass
             return
@@ -691,8 +690,9 @@ class NewOrder:
             current_task = self.MachineLine[machine_id].config
             if current_task == -1:
                 return
-            self.Table[current_task] = self.MachineLine[machine_id].process()
-    
+            output = self.MachineLine[machine_id].process()
+            self.Table[current_task] -= output
+
         def is_Done(self) -> bool:
             value: bool = True
             for enum, _ in enumerate(self.Table):
@@ -779,20 +779,21 @@ class NewOrder:
         with open(f"disturbance/week_{weeks}/order.json", "r") as order:
             data = order.read()
             variants = json.loads(data)
-        for variant in variants:
-            NewOrder.make_reschedule_NewOrder(weeks, variant)
+        for key in variants:
+            NewOrder.make_reschedule_NewOrder(weeks, variants[key])
     
     @staticmethod
     def make_reschedule_NewOrder(weeks: int, variant:list [int]) -> None:
         solution : list[list[int]]
         _span: int
         working_time: list[int]
-        changes: list[int] = variant
+        # changes: list[int] = variant
         sched = get_output_sched(weeks)
-        rescheduler = NewOrder.RescheduleNewOrder(sched.copy())
+        rescheduler = NewOrder.RescheduleNewOrder(sched)
         rescheduler.add_order(variant)
         resched = rescheduler.run_with_reschedule()
-        rescheduler = NewOrder.RescheduleNewOrder(sched.copy())
+        sched = get_output_sched(weeks)
+        rescheduler = NewOrder.RescheduleNewOrder(sched)
         rescheduler.add_order(variant)
         non_resched = rescheduler.run_with_bruteforce()
         rescheded : bool = resched[1] <= 0.95 * non_resched[1]
@@ -806,6 +807,8 @@ class NewOrder:
         write_data = json.dumps(data)
         with open(f'resched/week_{weeks}/order_{rescheduler.count}.json', "w+") as file:
             file.write(write_data)
+        NewOrder.count += 1
+        return
 
     def __init__(self) -> None:
         for week in range(311):
