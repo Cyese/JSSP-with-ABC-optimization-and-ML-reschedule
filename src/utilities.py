@@ -151,3 +151,4 @@ def read_span(weeks: int) -> int:
     with open(f"sched/week_{weeks}/info.json", "r") as file:
         span = int(json.loads(file.read())["span"])
     return span
+

@@ -2,6 +2,7 @@ from machine import MachinePhase1, MachinePhase2
 from utilities import *
 
 def generate_all_disturbance() -> None:
+    # NewOrder.clean()
     for week in range(311):
         span: int
         if not os.path.exists(f"disturbance/week_{week}"):
@@ -10,7 +11,7 @@ def generate_all_disturbance() -> None:
             data = json.loads(file.read())
             span = data["span"]
         generate_production(week, span)
-        generate_newOrder(week, span)
+        # generate_newOrder(week, span)
     # generate_maintenance()
     return
 
@@ -71,14 +72,13 @@ def generate_newOrder(week : int, span: int) -> None:
     randint = np.random.randint
     _quantity = [1, 2, 3, 4]
     rates = [0.4, 0.3, 0.2 , 0.1] # mean = 2
-    no_of_orders = randint(low=4, high= 7)
-    # for order in range(no_of_orders):
+    no_of_orders = randint(low=4, high=8)
     order_quantity = np.random.choice(_quantity,size=(no_of_orders), p= rates).tolist()
+    _timestep = np.random.choice(span, size= no_of_orders, replace=False).tolist()
     result = {}
     for index, order in enumerate(order_quantity):
         _type = randint(6)
-        _timestep = randint(span)
-        result.update({index : [_timestep, _type, order]})
+        result.update({_timestep[index]: [_type, order]})        
     json.dump(result, open(f"./disturbance/week_{week}/order.json", "w+"))
 
 
@@ -224,6 +224,8 @@ class ProductionDisturbance:
                         machine.insert(i, _id)
                         added = True
                         break
+                if added:
+                    break
             if not added:
                 self.Phase1Schedule[0].append(_id)
 
@@ -621,7 +623,6 @@ class NewOrder:
                 MachinePhase2(1),
                 MachinePhase2(1)
             ]
-            self.order: list[int]
             self.Dispatch = [True, True]
             self.Operate = [[-1, 8] for _ in range(4)]
             self.PenaltyTime = [4, 3, 8, 16]
@@ -629,9 +630,6 @@ class NewOrder:
             self.Task = [False for _ in range(6)]
             self.Table = [0 for _ in range(6)]
             self.count = NewOrder.count
-
-        def add_order(self, order: list[int]) -> None:
-            self.order = order
 
         def dispatch_P1(self, machine_id: int) -> None:
             if len(self.Phase1Schedule[machine_id]) == 0:
@@ -711,29 +709,32 @@ class NewOrder:
             return self.is_Done()
 
         def insert_batch(self, _id: int, quantity: int):
+            flag = True
             for machine in self.Phase1Schedule:
                 for i, item in enumerate(machine):
                     if item == _id:
                         for _ in range(quantity):
-                            machine.insert(i, _id)
+                            machine.insert(i+1, _id)
+                        flag = False
                         break
-                else:
-                    self.Phase1Schedule[0].extend([_id for _ in range(quantity)])
-            else:
-                self.Phase1Schedule[0].extend([_id for _ in range(quantity)])
-                
+                if not flag:
+                    break
+            if flag:
+                self.append_batch(_id, quantity)
+
+
         def append_batch(self, _id: int, quantity: int):
             if len(self.Phase1Schedule[0])  <= len(self.Phase1Schedule[1]):
                 self.Phase1Schedule[0].extend([_id for _ in range(quantity)])
             else: self.Phase1Schedule[1].extend([_id for _ in range(quantity)])
 
-        def run_with_reschedule(self) -> tuple[list[list[int]], int, list[int]]:
+        def run_with_reschedule(self, variants: dict, accumulate: list[int]) -> tuple[list[list[int]], int, list[int], int]:
             result = [[] for _ in range(4)]
             cycle = 0
-            time, _type, quantity= self.order
             total_working_time: list[int] = [0, 0, 0, 0]
             while True:
-                if cycle == time:
+                if cycle in accumulate:
+                    _type, quantity = variants[cycle]
                     self.insert_batch(_type, quantity)
                 Is_done = self.arrange()
                 for i in range(4):
@@ -748,15 +749,15 @@ class NewOrder:
                         result[y][x] = 8
                     if result[y][x] != 8:
                         total_working_time[y] += 1
-            return result, cycle, total_working_time
+            return result, cycle, total_working_time, accumulate[-1]
 
-        def run_with_bruteforce(self): 
+        def run_with_bruteforce(self, variants: dict, accumulate: list[int]) -> tuple[list[list[int]], int, list[int], int]: 
             result = [[] for _ in range(4)]
             cycle = 0
-            time, _type, quantity= self.order
             total_working_time: list[int] = [0, 0, 0, 0]
             while True:
-                if cycle == time:
+                if cycle in accumulate:
+                    _type, quantity = variants[cycle]
                     self.append_batch(_type, quantity)
                 Is_done = self.arrange()
                 for i in range(4):
@@ -771,41 +772,48 @@ class NewOrder:
                         result[y][x] = 8
                     if result[y][x] != 8:
                         total_working_time[y] += 1
-            return result, cycle, total_working_time
+            return result, cycle, total_working_time, accumulate[-1]
         
     @staticmethod
     def generate_schedule(weeks: int) -> None:
         variants : dict
         with open(f"disturbance/week_{weeks}/order.json", "r") as order:
             data = order.read()
-            variants = json.loads(data)
-        for key in variants:
-            NewOrder.make_reschedule_NewOrder(weeks, variants[key])
-    
+            read_variant = json.loads(data)
+        variants = {}  
+        for key in read_variant:
+            variants.update({int(key): read_variant[key]})
+        keys = sorted([_ for _ in variants])
+        no_of_order = len(keys) + 1
+        for index in range(1,no_of_order):
+            accumulate = keys[:index]
+            NewOrder.make_reschedule_NewOrder(weeks, variants, accumulate)
+
     @staticmethod
-    def make_reschedule_NewOrder(weeks: int, variant:list [int]) -> None:
+    def make_reschedule_NewOrder(weeks: int, variants: dict, accumulate: list[int]) -> None:
         solution : list[list[int]]
         _span: int
         working_time: list[int]
-        # changes: list[int] = variant
         sched = get_output_sched(weeks)
         rescheduler = NewOrder.RescheduleNewOrder(sched)
-        rescheduler.add_order(variant)
-        resched = rescheduler.run_with_reschedule()
+        resched = rescheduler.run_with_reschedule(variants, accumulate)
         sched = get_output_sched(weeks)
         rescheduler = NewOrder.RescheduleNewOrder(sched)
-        rescheduler.add_order(variant)
-        non_resched = rescheduler.run_with_bruteforce()
-        rescheded : bool = resched[1] <= 0.95 * non_resched[1]
-        solution, _span, working_time= resched if rescheded else non_resched
+        non_resched = rescheduler.run_with_bruteforce(variants, accumulate)
+        aplha1, beta1= resched[1] ,sum(resched[2])/4
+        aplha2, beta2= non_resched[1] ,sum(non_resched[2])/4
+        delta1 = aplha1*beta1/(aplha1 + beta1)
+        delta2 = aplha2*beta2/(aplha2 + beta2)
+        rescheded : bool = delta1 < delta2 * 0.95
+        solution, _span, working_time, timestep= resched if rescheded else non_resched
         original = json.load(open(f"sched/week_{weeks}/info.json", "r"))
         extended = sum([working_time[i] - int(_) for i, _ in enumerate(original["working"])])
-        with open(f'resched/week_{weeks}/order_{rescheduler.count}.txt', "w+") as file:
+        with open(f'resched/week_{weeks}/order_{NewOrder.count}.txt', "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
-            data = {"span": _span, "working": working_time, "extended": extended, "reschedule" : rescheded, "timestep" : variant[1]}  # Remake: number of batch have to be make again
+            data = {"span": _span, "working": working_time, "extended": extended, "reschedule" : rescheded, "timestep": timestep}  # Remake: number of batch have to be make again
         write_data = json.dumps(data)
-        with open(f'resched/week_{weeks}/order_{rescheduler.count}.json', "w+") as file:
+        with open(f'resched/week_{weeks}/order_{NewOrder.count}.json', "w+") as file:
             file.write(write_data)
         NewOrder.count += 1
         return
@@ -815,3 +823,14 @@ class NewOrder:
             NewOrder.generate_schedule(week)
             NewOrder.count = 0
         pass
+    
+    @staticmethod
+    def clean():
+        _result = "resched/week_{}/order*"
+        _disturbance = "disturbance/week_{}/order.json"
+        file_list = []
+        for x in range(311):
+            file_list.extend(glob.glob(_result.format(x)))
+            file_list.extend(glob.glob(_disturbance.format(x)))
+        for file in file_list:
+            os.remove(file)
