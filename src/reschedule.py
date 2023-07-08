@@ -3,6 +3,7 @@ from utilities import *
 
 def generate_all_disturbance() -> None:
     # NewOrder.clean()
+    # ProductionDisturbance.clean()
     for week in range(311):
         span: int
         if not os.path.exists(f"disturbance/week_{week}"):
@@ -18,7 +19,6 @@ def generate_all_disturbance() -> None:
 def generate_production(weeks: int, span: int) -> None:
     """ Use to generate the disturbance for production
     """
-    ProductionDisturbance.clean(weeks)
     ProductionDisturbance.make_disturbance(weeks, span)
     return
 
@@ -113,7 +113,6 @@ class ProductionDisturbance:
                 MachinePhase2(1),
                 MachinePhase2(1)
             ]
-            self.disturb: list[int]
             self.Dispatch = [True, True]
             self.Operate = [[-1, 8] for _ in range(4)]
             self.PenaltyTime = [4, 3, 8, 16]
@@ -121,10 +120,6 @@ class ProductionDisturbance:
             self.Task = [False for _ in range(6)]
             self.Table = [0 for _ in range(6)]
             self.count = ProductionDisturbance.count
-
-        def add_disturbance(self, disturb: list[int]) -> None:
-            self.disturb = disturb
-            # self.run(disturb= 1)
 
         def dispatch_P1(self, machine_id: int) -> None:
             if len(self.Phase1Schedule[machine_id]) == 0:
@@ -234,18 +229,20 @@ class ProductionDisturbance:
                 self.Phase1Schedule[0].append(_id)
             else: self.Phase1Schedule[1].append(_id)
 
-        def run_with_disturbance(self) -> tuple[list[list[int]], int, list[int], int]:
+        def run_with_disturbance(self, variants: dict[int, list[int]], accumulate: list[int]) -> tuple[list[list[int]], int, list[int]]:
             result = [[] for _ in range(4)]
             cycle = 0
-            machine, time, _type = self.disturb
+
             total_working_time: list[int] = [0, 0, 0, 0]
-            if machine >= 2:
-                stage = 2
-            else:
-                stage = 1
             while True:
-                if time <= cycle <= time + 1:
-                    Is_done = self.arrange(machine, _type)
+                Is_done = False
+                if cycle in accumulate or cycle + 1 in accumulate:
+                    if cycle in accumulate:
+                        machine, _type = variants[cycle]
+                        Is_done = self.arrange(machine, _type)
+                    elif cycle + 1 in accumulate: 
+                        machine, _type = variants[cycle+ 1]
+                        Is_done = self.arrange(machine, _type)
                 else:
                     Is_done = self.arrange()
                 for i in range(4):
@@ -260,7 +257,7 @@ class ProductionDisturbance:
                         result[y][x] = 8
                     if result[y][x] != 8:
                         total_working_time[y] += 1
-            return result, cycle, total_working_time, stage
+            return result, cycle, total_working_time
 
         def bruteforce_P1(self, machine_id: int, disturb: int = 0) -> None:
             if self.MachineLine[machine_id].config == -1 or self.Dispatch[machine_id]:
@@ -317,18 +314,19 @@ class ProductionDisturbance:
                         self.bruteforce_P2(machine_id)
             return self.is_Done()           
 
-        def run_with_bruteforce(self) -> tuple[list[list[int]], int, list[int], int]:
+        def run_with_bruteforce(self, variants: dict[int, list[int]], accumulate : list[int]) -> tuple[list[list[int]], int, list[int]]:
             result = [[] for _ in range(4)]
             cycle = 0
-            machine, time, _type = self.disturb
             total_working_time: list[int] = [0, 0, 0, 0]
-            if machine >= 2:
-                stage = 2
-            else:
-                stage = 1
             while True:
-                if time <= cycle <= time + 1:
-                    Is_done = self.bruteforce(machine, _type)
+                Is_done = False
+                if cycle in accumulate or cycle + 1 in accumulate:
+                    if cycle in accumulate:
+                        machine, _type = variants[cycle]
+                        Is_done = self.bruteforce(machine, _type)
+                    elif cycle + 1 in accumulate: 
+                        machine, _type = variants[cycle+ 1]
+                        Is_done = self.bruteforce(machine, _type)
                 else:
                     Is_done = self.bruteforce()
                 for i in range(4):
@@ -343,61 +341,57 @@ class ProductionDisturbance:
                         result[y][x] = 8
                     if result[y][x] != 8:
                         total_working_time[y] += 1
-            return result, cycle, total_working_time, stage
+            return result, cycle, total_working_time
 
 
     @staticmethod
-    def clean(weeks: int) -> None:
+    def clean() -> None:
         """Utility function: clear space for rescheduling data
             @param: weeks (int): week ot clear
         """
-        _dir = f"./resched/week_{weeks}"
-        file_list = glob.glob(_dir + "/*.json")
+        _result = "resched/week_{}/production*"
+        _disturbance = "disturbance/week_{}/production.json"
+        file_list = []
+        for x in range(311):
+            file_list.extend(glob.glob(_result.format(x)))
+            file_list.extend(glob.glob(_disturbance.format(x)))
         for file in file_list:
             os.remove(file)
-        file_list = glob.glob(_dir + "/*.txt")
-        for file in file_list:
-            os.remove(file)
-
     # ---Space for creating disturbance--- #
 
     @staticmethod
     def make_disturbance(weeks: int, size: int) -> None:
+        disturbance = {}
         time = ProductionDisturbance.time_variant(size)
-        time_data = json.dumps(time)
         operation = ProductionDisturbance.operate_variant(size)
-        operation_data = json.dumps(operation)
-        with open(f"disturbance/week_{weeks}/time.json", "w+") as time_file:
-            time_file.write(time_data)
-        with open(f"disturbance/week_{weeks}/operation.json", "w+") as operation_file:
-            operation_file.write(operation_data)
+        for value in time + operation:
+            key = value[0]
+            disturbance[key] = value[1:]
+        json.dump(disturbance, open(f"disturbance/week_{weeks}/production.json", "w+"))
+
 
     @staticmethod
-    def time_variant(size: int) -> dict[int, tuple[int, int, int]]:
+    def time_variant(size: int) -> list[tuple[int, int, int]]:
         span: int = size
         rate = np.array([0.05, 0.9, 0.05])
         generator = np.random.choice([-1, 0, 1], p=rate, size=(4, span))
         generator = generator.tolist()
-        variants: dict[int, tuple[int, int, int]]
-        variants = {}  # Matching timestep with variant
-        counter = 0
+        variants: list[tuple[int, int, int]]
+        variants = []  # Matching timestep with variant
         for x, machine in enumerate(generator):
             for y, changes in enumerate(machine):
                 if changes != 0:
-                    variants.__setitem__(counter, (x, y, int(changes)))
-                    counter += 1
+                    variants.append((y, x, int(changes)))
         return variants
 
     @staticmethod
-    def operate_variant(size: int) -> dict[int, tuple[int, int, int]]:
+    def operate_variant(size: int) -> list[tuple[int, int, int]]:
         prob = StaticProb(size)
-        variants: dict[int, tuple[int, int, int]] = {}
-        counter = 0
+        variants: list[tuple[int, int, int]] = []
         for x in range(4):
             for y in range(120):
                 if prob.randomize():
-                    variants.__setitem__(counter, (x, y, 2))  # 2 represent broken batch
-                    counter += 1
+                    variants.append((y, x, 2))  # 2 represent broken batch
         return variants
 
     # ---End of space for creating disturbance--- #
@@ -405,50 +399,47 @@ class ProductionDisturbance:
     @staticmethod
     def generate_schedule(weeks: int) -> None:
         variants: dict
-        with open(f"disturbance/week_{weeks}/time.json", "r") as time:
-            data = time.read()
-            variants = json.loads(data)
-        for variant in variants:
-            ProductionDisturbance.make_reschedule_PDisturbance(weeks, variants[variant], "time")
+        with open(f"disturbance/week_{weeks}/production.json", "r") as product:
+            data = product.read()
+            read_variant = json.loads(data)
+        variants = {}  
+        for key in read_variant:
+            variants.update({int(key): read_variant[key]})
+        keys = sorted([_ for _ in variants])
+        no_of_order = len(keys) + 1
+        for index in range(1,no_of_order):
+            accumulate = keys[:index]
+            ProductionDisturbance.make_reschedule_PDisturbance(weeks, variants, accumulate)
         ProductionDisturbance.count = 0
-        with open(f"disturbance/week_{weeks}/operation.json", "r") as operation:
-            data = operation.read()
-            variants = json.loads(data)
-        for variant in variants:
-            ProductionDisturbance.make_reschedule_PDisturbance(weeks, variants[variant], "operation")
 
     @staticmethod
-    def make_reschedule_PDisturbance(weeks: int, variant: list[int], filename: str) -> None:
+    def make_reschedule_PDisturbance(weeks: int, variants: dict, accumulate: list[int]) -> None:
         solution : list[list[int]]
         _span: int
         working_time: list[int]
-        stage: int
-        changes: list[int] = variant
         sched = get_output_sched(weeks)
         rescheduler = ProductionDisturbance.RescheduleProduction(sched)
-        rescheduler.add_disturbance(changes)
-        resched = rescheduler.run_with_disturbance()
+        resched = rescheduler.run_with_disturbance(variants, accumulate)
         sched = get_output_sched(weeks)
         rescheduler = ProductionDisturbance.RescheduleProduction(sched)
-        rescheduler.add_disturbance(changes)
-        non_resched = rescheduler.run_with_bruteforce()
-        rescheded : bool = resched[1] <= 0.95 * non_resched[1]
-        if rescheded:
-            solution, _span, working_time, stage = resched
-        else:
-            solution, _span, working_time, stage = non_resched
+        non_resched = rescheduler.run_with_bruteforce(variants, accumulate)
+        aplha1, beta1= resched[1] ,sum(resched[2])/4
+        aplha2, beta2= non_resched[1] ,sum(non_resched[2])/4
+        delta1 = aplha1*beta1/(aplha1 + beta1)
+        delta2 = aplha2*beta2/(aplha2 + beta2)
+        rescheded : bool = delta1 < delta2 * 0.95
+        
+        solution, _span, working_time = resched if rescheded else non_resched
         original = json.load(open(f"sched/week_{weeks}/info.json", "r"))
         extended = sum([working_time[i] - int(_) for i, _ in enumerate(original["working"])])
         if extended == 0:
-            # ProductionDisturbance.count -= 1
             return
-        with open(f'resched/week_{weeks}/{filename}_{rescheduler.count}.txt', "w+") as file:
+            return
+        with open(f'resched/week_{weeks}/production_{ProductionDisturbance.count}.txt', "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
-        data = {"span": _span, "working": working_time, "extended": extended, "stage": stage, "reschedule" : rescheded, "timestep" : variant[1]}  # Remake: number of batch have to be make again
-        write_data = json.dumps(data)
-        with open(f'resched/week_{weeks}/{filename}_{rescheduler.count}.json', "w+") as file:
-            file.write(write_data)
+        data = {"span": _span, "working": working_time, "extended": extended, "reschedule" : rescheded, "timestep" : accumulate[-1]}  # Remake: number of batch have to be make again
+        json.dump(data, open(f'resched/week_{weeks}/production_{ProductionDisturbance.count}.json', "w+"))
         ProductionDisturbance.count += 1
         return
         
@@ -790,7 +781,7 @@ class NewOrder:
             NewOrder.make_reschedule_NewOrder(weeks, variants, accumulate)
 
     @staticmethod
-    def make_reschedule_NewOrder(weeks: int, variants: dict, accumulate: list[int]) -> None:
+    def make_reschedule_NewOrder(weeks: int, variants:  dict[int, list[int]], accumulate: list[int]) -> None:
         solution : list[list[int]]
         _span: int
         working_time: list[int]
