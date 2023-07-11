@@ -1,0 +1,46 @@
+|--- RSDU <= 0.15
+|   |--- RSDU <= 0.10
+|   |   |--- RSDU <= 0.06
+|   |   |   |--- MU <= 0.77
+|   |   |   |   |--- truncated branch of depth 7
+|   |   |   |--- MU >  0.77
+|   |   |   |   |--- truncated branch of depth 13
+|   |   |--- RSDU >  0.06
+|   |   |   |--- Timestep <= 70.50
+|   |   |   |   |--- truncated branch of depth 19
+|   |   |   |--- Timestep >  70.50
+|   |   |   |   |--- truncated branch of depth 23
+|   |--- RSDU >  0.10
+|   |   |--- RBM <= 1.16
+|   |   |   |--- Timestep <= 28.50
+|   |   |   |   |--- truncated branch of depth 19
+|   |   |   |--- Timestep >  28.50
+|   |   |   |   |--- truncated branch of depth 19
+|   |   |--- RBM >  1.16
+|   |   |   |--- RSDU <= 0.14
+|   |   |   |   |--- truncated branch of depth 12
+|   |   |   |--- RSDU >  0.14
+|   |   |   |   |--- truncated branch of depth 11
+|--- RSDU >  0.15
+|   |--- Timestep <= 23.50
+|   |   |--- MU <= 0.80
+|   |   |   |--- RBM <= 1.16
+|   |   |   |   |--- truncated branch of depth 8
+|   |   |   |--- RBM >  1.16
+|   |   |   |   |--- truncated branch of depth 13
+|   |   |--- MU >  0.80
+|   |   |   |--- Timestep <= 19.50
+|   |   |   |   |--- truncated branch of depth 4
+|   |   |   |--- Timestep >  19.50
+|   |   |   |   |--- truncated branch of depth 4
+|   |--- Timestep >  23.50
+|   |   |--- Total extended time <= 4.50
+|   |   |   |--- MU <= 0.70
+|   |   |   |   |--- truncated branch of depth 2
+|   |   |   |--- MU >  0.70
+|   |   |   |   |--- truncated branch of depth 5
+|   |   |--- Total extended time >  4.50
+|   |   |   |--- RSDU <= 0.27
+|   |   |   |   |--- truncated branch of depth 17
+|   |   |   |--- RSDU >  0.27
+|   |   |   |   |--- truncated branch of depth 10

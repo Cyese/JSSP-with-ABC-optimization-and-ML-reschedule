@@ -105,7 +105,7 @@ class DataNewOrder:
             for file in list_file:
                 data = json.load(open(file, "r"))
                 span = int(data["span"])
-                timestep = int(data["timestep"])
+                timestep = int(data["Timestep"])
                 working = [int(_) / span for _ in data["working"]]
                 mean = sum(working) / 4
                 RBM = calculate_RBM(max(working), mean)
@@ -134,7 +134,7 @@ class DataNewOrder:
         for week in range(311):
             holder.extend(DataNewOrder.DataByWeek(week).get_data())
         self.data = pd.DataFrame(holder)
-        self.data.columns = ["Week", "timestep","U1", "U2", "U3", "U4", "MU", "RBM", "RSDU", "Total extended time", "Rescheduling"]
+        self.data.columns = ["Week", "Timestep","U1", "U2", "U3", "U4", "MU", "RBM", "RSDU", "Total extended time", "Rescheduling"]
         self.data.to_csv("data/feature_order.csv", index=False)
         self.data.to_excel("data/feature_order.xlsx", index=False)
 

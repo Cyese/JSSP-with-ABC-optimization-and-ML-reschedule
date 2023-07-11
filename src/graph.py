@@ -1,12 +1,10 @@
 from utilities import *
 
-
 def clean(weeks: int):
     _directory = f"./sched/week_{weeks}"
     images_list = glob.glob(_directory + "/*.png")
     for image in images_list:
         os.remove(image)
-
 
 def draw_chart(weeks: int, limit: int):
     clean(weeks)
@@ -62,7 +60,6 @@ def draw_chart(weeks: int, limit: int):
     ax.grid(True)
     plot.savefig(r'./sched/week_{}/result'.format(weeks))
     plot.close()
-
 
 def draw_sample(weeks: int):
     result, limit = [], None
@@ -122,7 +119,6 @@ def draw_sample(weeks: int):
     ax.set_title("GA")
     plot.savefig(r'./sched/week_{}/sample_{}'.format(weeks, _path))
     plot.close()
-
 
 def display(weeks: int):
     _directory = f"./sched/week_{weeks}"
@@ -189,3 +185,23 @@ def draw_from_dir(_dir : str):
     ax.set_title("GA")
     plot.savefig(_dir)
     plot.close()
+
+def plot_correlation(data: str):
+    title = "NewOrder" if data == 'order' else "Product"
+    df = pd.read_csv(f"data/balanced/feature_{data}.csv")
+    y = df['Rescheduling'].values.reshape(-1, 1) # type: ignore
+    x = df[['Week','Timestep', 'MU', 'RBM', 'RSDU', 'Total extended time']]
+
+    correlation_matrix = x.corr()
+    plot.figure(figsize=(10, 8))
+    plot.imshow(correlation_matrix, cmap='RdBu_r', vmin=-1, vmax=1)
+    plot.colorbar()
+    plot.title(f'Correlation between Factors in {title}')
+    plot.xticks(range(len(correlation_matrix.columns)), correlation_matrix.columns, rotation=45)
+    plot.yticks(range(len(correlation_matrix.columns)), correlation_matrix.columns)
+    
+    for i in range(len(correlation_matrix.columns)):
+        for j in range(len(correlation_matrix.columns)):
+            plot.text(j, i, f"{correlation_matrix.iloc[i, j]:.2f}", ha='center', va='center')
+    
+    plot.savefig(f"misc/{title}Correlation")

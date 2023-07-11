@@ -1,6 +1,6 @@
 # from optimize import BeeColony
-# from graph import draw_from_dir
-from utilities import *
+from graph import *
+# from utilities import *
 # from reschedule import *
 # from shutil import rmtree
 
@@ -10,4 +10,16 @@ from data import DataProduct, DataNewOrder
 # generate_all_disturbance()
 
 # ProductionDisturbance()
-DataProduct.make_disturbance_sheet()
+# DataProduct.make_disturbance_sheet()
+from machine_learning import *
+
+
+data_src = 0 #int(input(">>>"))
+
+meh = "order" if data_src else "product"
+# NewOrder()
+# DataNewOrder()
+# run_DecisionTree(meh)
+# balance_data(meh)
+plot_decesion_tree(meh)
+# plot_correlation("order")

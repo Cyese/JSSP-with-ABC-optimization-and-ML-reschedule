@@ -22,7 +22,7 @@ def runDS():
     print("Fetching data from data/feature.csv")
     print()
     print("Result for sample size of 80%")
-    run_DecisionTree()
+    # run_DecisionTree()
     print()
 
 

@@ -802,7 +802,7 @@ class NewOrder:
         with open(f'resched/week_{weeks}/order_{NewOrder.count}.txt', "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
-            data = {"span": _span, "working": working_time, "extended": extended, "reschedule" : rescheded, "timestep": timestep}  # Remake: number of batch have to be make again
+            data = {"span": _span, "working": working_time, "extended": extended, "reschedule" : rescheded, "Timestep": timestep}  # Remake: number of batch have to be make again
         write_data = json.dumps(data)
         with open(f'resched/week_{weeks}/order_{NewOrder.count}.json', "w+") as file:
             file.write(write_data)
