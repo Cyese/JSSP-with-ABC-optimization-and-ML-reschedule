@@ -21,5 +21,9 @@ meh = "order" if data_src else "product"
 # DataNewOrder()
 # run_DecisionTree(meh)
 # balance_data(meh)
-plot_decesion_tree(meh)
+# plot_decesion_tree(meh)
 # plot_correlation("order")
+for x in [True, False]:
+    meh = "order" if x else "product"
+    for x in range(2,7):
+        split_sample_test(meh, x)
