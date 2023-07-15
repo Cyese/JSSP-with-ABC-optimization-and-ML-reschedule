@@ -20,7 +20,7 @@ def draw_chart(weeks: int, limit: int):
         left: start time
     """
     Task = [[[] for _ in range(9)] for _ in range(4)]
-    Color_pallet = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', '', 'grey', 'white']
+    Color_pallet = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', '', 'g0y', 'white']
     for x in range(4):
         for value, start, length in get_sequences(result[x]):
             if value == 0:

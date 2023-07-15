@@ -23,7 +23,7 @@ def generate_production(weeks: int, span: int) -> None:
     return
 
 def generate_maintenance() -> None:
-    number_of_week = 300
+    number_of_week = 311
     number_of_stage = 2
     generator = [np.random.choice([True, False], size=number_of_week, p=[0.25, 0.75]).tolist() for _ in range(2)]
     sth = 0
@@ -134,7 +134,6 @@ class ProductionDisturbance:
         def dispatch_P2(self, machine_id: int) -> None:
             if (self.Operate[machine_id][0] == -1 and sum(self.Table) != 0) \
                     or self.Table[self.Operate[machine_id][0]] <= 0:
-                # No more to produce
                 choice = get_max(self.Table, self.Task)
                 current = self.Operate[machine_id][0]
                 if current != -1:
@@ -434,12 +433,20 @@ class ProductionDisturbance:
         extended = sum([working_time[i] - int(_) for i, _ in enumerate(original["working"])])
         if extended == 0:
             return
-            return
         with open(f'resched/week_{weeks}/production_{ProductionDisturbance.count}.txt', "w+") as file:
             for x in solution:
                 file.writelines(' '.join(str(_) for _ in x) + '\n')
         data = {"span": _span, "working": working_time, "extended": extended, "reschedule" : rescheded, "timestep" : accumulate[-1]}  # Remake: number of batch have to be make again
         json.dump(data, open(f'resched/week_{weeks}/production_{ProductionDisturbance.count}.json', "w+"))
+        #---Remove this later---#
+                
+        with open(f'mock/week_{weeks}_{ProductionDisturbance.count}_resched.txt',"w+") as file:
+            for x in resched[0]:
+                file.writelines(' '.join(str(_) for _ in x) + '\n')
+        with open(f'mock/week_{weeks}_{ProductionDisturbance.count}_nonresched.txt',"w+") as file:
+            for x in non_resched[0]:
+                file.writelines(' '.join(str(_) for _ in x) + '\n')
+        #---~~~~~~~~~~~~~~~~~---#
         ProductionDisturbance.count += 1
         return
         
@@ -533,15 +540,15 @@ class MaintenanceDisturbance:
 
         def is_Done(self) -> bool:
             value: bool = True
-            for enum, _ in enumerate(self.Table):
-                value &= _ == 0 and self.Task[enum] is False
+            for enum, x in enumerate(self.Table):
+                value &= x == 0 and (self.Task[enum] is False)
             value &= len(self.Phase1Schedule[0]) == 0 and len(self.Phase1Schedule[1]) == 0
             return value
 
         def arrange(self, machine: int = 5):
             for machine_id in [0, 1, 2, 3]:  # range(4):
                 if machine_id == machine:
-                    continue
+                    pass
                 elif self.PenaltyTime[machine_id] > 0:
                     self.PenaltyTime[machine_id] -= 1
                 elif machine_id // 2 == 0:
@@ -549,6 +556,46 @@ class MaintenanceDisturbance:
                 else:
                     self.arrange_P2(machine_id)
             return self.is_Done()
+        
+        def arrange_maintain(self, machine: int = 5):
+            for machine_id in [0, 1, 2, 3]:  # range(4):
+                if machine_id == machine:
+                    machine_config = self.MachineLine[machine].config
+                    if machine_config != 7 or machine_config != 8 or machine_config != -1:
+                        self.insert_batch(machine_config)
+                        self.MachineLine[machine].config = -1
+                        self.MachineLine[machine].state = State[0]
+                        self.MachineLine[machine].config_time = 4
+                        if machine >=2:
+                            self.Task[machine_config] = False
+                    else:
+                        pass
+                if self.PenaltyTime[machine_id] > 0:
+                    self.PenaltyTime[machine_id] -= 1
+                elif machine_id // 2 == 0:
+                    self.arrange_P1(machine_id)
+                else:
+                    self.arrange_P2(machine_id)
+            return self.is_Done()
+        
+        def insert_batch(self, _id: int):
+            added = False
+            for machine in self.Phase1Schedule:
+                for i, item in enumerate(machine):
+                    if item == _id:
+                        machine.insert(i, _id)
+                        added = True
+                        break
+                if added:
+                    break
+            if not added:
+                self.Phase1Schedule[0].append(_id)
+
+        def append_batch(self, _id: int):
+            if len(self.Phase1Schedule[0])  <= len(self.Phase1Schedule[1]):
+                self.Phase1Schedule[0].append(_id)
+            else: self.Phase1Schedule[1].append(_id)
+
 
         def run_with_maintenance(self) -> tuple[list[list[int]], int, list[int]]:
             result = [[] for _ in range(4)]
@@ -557,6 +604,31 @@ class MaintenanceDisturbance:
             machine, time = self.maintenance
             while True:
                 if time <= cycle < time + 3:
+                    Is_done = self.arrange_maintain(machine)
+                else:
+                    Is_done = self.arrange()
+                for i in range(4):
+                    result[i].append(self.MachineLine[i].get_config())
+                if Is_done:
+                    break
+                else:
+                    cycle += 1
+            # print(cycle)
+            for y in range(4):
+                for x in range(cycle + 1):
+                    if result[y][x] == -1:
+                        result[y][x] = 8
+                    if (y == machine and time <= x <= cycle) or result[y][x] != 8:
+                        total_working_time[y] += 1
+            return result, cycle, total_working_time
+        
+        def run_with_bruteforce(self) -> tuple[list[list[int]], int, list[int]]:
+            result = [[] for _ in range(4)]
+            cycle = 0
+            total_working_time: list[int] = [0, 0, 0, 0]
+            machine, time = self.maintenance
+            while True:
+                if time == cycle:
                     Is_done = self.arrange(machine)
                 else:
                     Is_done = self.arrange()
@@ -566,17 +638,12 @@ class MaintenanceDisturbance:
                     break
                 else:
                     cycle += 1
-            if cycle <= time:
-                pass
-            elif time < cycle < time + 3:
-                result[machine][time: cycle] = [9 for _ in range(cycle - time)]
-            else:
-                result[machine][time: time + 3] = [9 for _ in range(3)]
+
             for y in range(4):
-                for x in range(cycle + 1):
+                for x in range(cycle):
                     if result[y][x] == -1:
                         result[y][x] = 8
-                    if result[y][x] != 8:
+                    if (y == machine and time <= x <= cycle) or result[y][x] != 8:
                         total_working_time[y] += 1
             return result, cycle, total_working_time
 
@@ -585,15 +652,28 @@ class MaintenanceDisturbance:
         maintain = json.load(open("disturbance/maintain.json", "r"))
         for item in maintain:
             week = int(item)
+            # print(f"Maintain at week {week}")
             sched = get_output_sched(week)
             maintain_info = maintain[item]
             rescheduler = MaintenanceDisturbance.RescheduleMaintenance(sched)
             rescheduler.add_maintenance(maintain_info)
-            solution, _span, working_time = rescheduler.run_with_maintenance()
+            resched = rescheduler.run_with_maintenance()
+            sched = get_output_sched(week)
+            rescheduler = MaintenanceDisturbance.RescheduleMaintenance(sched)
+            rescheduler.add_maintenance(maintain_info)
+            non_resched = rescheduler.run_with_bruteforce()
+            aplha1, beta1= resched[1] ,sum(resched[2])/4
+            aplha2, beta2= non_resched[1] ,sum(non_resched[2])/4
+            delta1 = aplha1*beta1/(aplha1 + beta1)
+            delta2 = aplha2*beta2/(aplha2 + beta2)
+            rescheded : bool = delta1 * 0.95 < delta2
+            solution, _span, working_time = resched if rescheded else non_resched
+            original = json.load(open(f"sched/week_{week}/info.json", "r"))
+            extended = abs(sum([working_time[i] - int(_) for i, _ in enumerate(original["working"])]))
             with open(f'resched/week_{week}/maintain.txt', "w+") as file:
                 for x in solution:
                     file.writelines(' '.join(str(_) for _ in x) + '\n')
-            data = {"span": _span, "working": working_time}
+            data = {"span": _span, "working": working_time, "extended": extended, "reschedule": rescheded, "Timestep": maintain_info[1], "Machine": maintain_info[0]}
             write_data = json.dumps(data)
             with open(f'resched/week_{week}/maintain_info.json', "w+") as file:
                 file.write(write_data)
@@ -791,11 +871,11 @@ class NewOrder:
         sched = get_output_sched(weeks)
         rescheduler = NewOrder.RescheduleNewOrder(sched)
         non_resched = rescheduler.run_with_bruteforce(variants, accumulate)
-        aplha1, beta1= resched[1] ,sum(resched[2])/4
-        aplha2, beta2= non_resched[1] ,sum(non_resched[2])/4
-        delta1 = aplha1*beta1/(aplha1 + beta1)
-        delta2 = aplha2*beta2/(aplha2 + beta2)
-        rescheded : bool = delta1 < delta2 * 0.95
+        aplha1, beta1= resched[1] ,sum(resched[2])/4 # Make span, mean processing time on machine of reschedule
+        aplha2, beta2= non_resched[1] ,sum(non_resched[2])/4 # Make span, mean processing time on machine of reschedule
+        delta1 = aplha1*beta1/(aplha1 + beta1) # Product by sum (harmony average)
+        delta2 = aplha2*beta2/(aplha2 + beta2) # Product by sum (harmony average)
+        rescheded : bool = delta1 < delta2 * 0.95 
         solution, _span, working_time, timestep= resched if rescheded else non_resched
         original = json.load(open(f"sched/week_{weeks}/info.json", "r"))
         extended = sum([working_time[i] - int(_) for i, _ in enumerate(original["working"])])
