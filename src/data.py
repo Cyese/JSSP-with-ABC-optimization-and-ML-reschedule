@@ -1,5 +1,9 @@
 from utilities import pd, json, glob, np
 
+def run():
+    DataNewOrder()
+    DataProduct()
+    DataMaintain()
 
 def export_make_spans() -> None:
     schedule_spans: list[int] = []

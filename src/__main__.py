@@ -1,9 +1,11 @@
 from optimize import BeeColony
 from graph import draw_chart, draw_sample, display
-from utilities import make_dir, os
-from reschedule import ProductionDisturbance, generate_all_disturbance, NewOrder
-from data import DataProduct
-from machine_learning import run_DecisionTree
+from utilities import make_dir, os, plot, Image
+from reschedule import ProductionDisturbance, NewOrder, MaintenanceDisturbance, generate_all_disturbance
+import data
+import classify
+import rainingforest
+import mlp
 from shutil import rmtree
 
 exited = False
@@ -19,11 +21,31 @@ def display_schedule(weeks: int):
 
 
 def runDS():
-    print("Fetching data from data/feature.csv")
-    print()
-    print("Result for sample size of 80%")
-    # run_DecisionTree()
-    print()
+    cls()
+    folder = "misc/"
+    sth = ["product", "order" , "maintain"]
+    print("Choose machine learning method to display:")
+    print("press (1) for Classify Tree")
+    print("press (2) for Raining Forest")
+    print("press (3) for MLP")
+    _input = int(input(">>> "))
+    folder += "ClassifyTree/" if _input == 1 else ( "RandomForest/" if _input == 2 else "MLP/")
+    print("Choose result to display:")
+    print("press (1) for Confusion matrix")
+    print("press (2) for Balanced confusion matrix")
+    print("press (3) for Decision tree")
+    _input = int(input(">>> "))
+    heading_str = "confusion_matrix_"if _input == 1 else ( "balanced_confusion_matrix_" if _input == 2 else "DecesionTree_")
+    _file = folder + heading_str
+    image_list = [_file +  _ + ".png" for _ in sth]
+    fig, axes = plot.subplots(nrows=1, ncols=3)
+    for index, image in enumerate(image_list):
+        _image = Image.open(image)
+        axes[index].imshow(_image)
+        axes[index].axis('off')
+        _image.close()
+    plot.tight_layout()
+    plot.show()
 
 
 def rerun_everything():
@@ -53,9 +75,10 @@ def rerun_everything():
     print("Rescheduling")
     ProductionDisturbance()
     NewOrder()
+    MaintenanceDisturbance()
     print("Rescheduled")
     print("Collecting data for model training")
-    _ = DataProduct().make_data_product()
+    data.run()
     print("Data collected and stored")
 
 
@@ -79,9 +102,10 @@ def fresh_run():
     print("Rescheduling")
     ProductionDisturbance()
     NewOrder()
+    MaintenanceDisturbance()
     print("Rescheduled")
     print("Collecting data for model training")
-    DataProduct().make_data_product()
+    data.run()
     print("Data collected and stored")
 
 
@@ -116,9 +140,9 @@ while not exited:
                 print("Canceled")
         elif choice == 5:
             exited = True
-            DataProduct().make_data_product()
             print("Exiting")
         else:
             print("Unknown option")
-    except:
+    except Exception as x:
         print("Something went wrong, please try again!")
+        print(f"Exception : {x}")

@@ -1,0 +1,16 @@
+Test fold index: 0
+	Train: 75.0%
+	Test:  25.0%
+	Accuracy: 0.703169014084507
+Test fold index: 1
+	Train: 75.0%
+	Test:  25.0%
+	Accuracy: 0.7073943661971831
+Test fold index: 2
+	Train: 75.0%
+	Test:  25.0%
+	Accuracy: 0.7116197183098592
+Test fold index: 3
+	Train: 75.0%
+	Test:  25.0%
+	Accuracy: 0.7091549295774648

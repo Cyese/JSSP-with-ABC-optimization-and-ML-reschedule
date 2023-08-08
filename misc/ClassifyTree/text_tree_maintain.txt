@@ -1,0 +1,25 @@
+|--- Total extended time <= 2.50
+|   |--- Timestep <= 7.00
+|   |   |--- class: True
+|   |--- Timestep >  7.00
+|   |   |--- RBM <= 1.24
+|   |   |   |--- class: False
+|   |   |--- RBM >  1.24
+|   |   |   |--- MU <= 0.74
+|   |   |   |   |--- class: False
+|   |   |   |--- MU >  0.74
+|   |   |   |   |--- class: True
+|--- Total extended time >  2.50
+|   |--- MU <= 0.70
+|   |   |--- RBM <= 1.24
+|   |   |   |--- class: True
+|   |   |--- RBM >  1.24
+|   |   |   |--- class: False
+|   |--- MU >  0.70
+|   |   |--- RBM <= 1.21
+|   |   |   |--- RSDU <= 0.14
+|   |   |   |   |--- class: True
+|   |   |   |--- RSDU >  0.14
+|   |   |   |   |--- truncated branch of depth 6
+|   |   |--- RBM >  1.21
+|   |   |   |--- class: True
